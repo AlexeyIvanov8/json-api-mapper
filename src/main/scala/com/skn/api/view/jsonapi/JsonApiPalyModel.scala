@@ -1,23 +1,16 @@
 package com.skn.api.view.jsonapi
 
 import com.skn.api.version.ApiVersion
-import play.api.libs.json.JsValue
+import com.skn.api.view.jsonapi.JsonApiValueModel.JsonApiValue
 
 /**
 * Created by Sergey on 01.10.2016.
 */
-object Model
+object JsonApiPalyModel
 {
-  sealed trait JsonApiValue
 
-  case class JsonApiString(value: String) extends JsonApiValue
-  case class JsonApiNumber(value: BigDecimal) extends JsonApiValue
-  case class JsonApiBoolean(value: Boolean) extends JsonApiValue
-  case class JsonApiArray(seq: Seq[JsonApiValue]) extends JsonApiValue
-  case class JsonApiObject(map: Map[String, JsonApiValue]) extends JsonApiValue
-
-  type Attributes = Map[String, JsValue]
-  implicit def Attributes(values: (String, JsValue)*): Attributes = Map(values: _*)
+  type Attributes = Map[String, JsonApiValue]
+  implicit def Attributes(values: (String, JsonApiValue)*): Attributes = Map(values: _*)
 
   type Meta = Map[String, JsonApiValue]
   implicit def Meta(values: (String, JsonApiValue)*): Meta = Map(values: _*)

@@ -1,10 +1,10 @@
 package com.skn.common.view.model
 
-import play.api.libs.json.Json
-import com.skn.api.view.jsonapi.Model.{Data, Link, ObjectKey, Relationship, Relationships, RootObject}
-import com.skn.api.view.jsonapi.Model._
+import com.skn.api.view.jsonapi.JsonApiValueModel.JsonApiNumber
+import com.skn.api.view.jsonapi.JsonApiPalyModel.{Data, Link, ObjectKey, Relationships, RootObject}
+import com.skn.api.view.jsonapi.JsonApiPalyModel._
 import com.skn.api.{Result, Success}
-import com.skn.api.view.jsonapi.Model.Relationship
+import com.skn.api.view.jsonapi.JsonApiPalyModel.Relationship
 import com.skn.api.view.jsonapi.RootObjectMapper
 
 case class House(price: BigDecimal, address: Address, id: Option[Long] = None)
@@ -17,7 +17,7 @@ object HouseFormat
 					Data(
 							ObjectKey("house", house.id),
 							Some(Attributes(
-									("price", Json.toJson(house.price))	
+									("price", JsonApiNumber(house.price))
 								)),
 						  Some(Link("http://skn.com/v1/house/1")),
 							Some(Relationships(
@@ -32,12 +32,12 @@ object HouseFormat
 			val dataHead = rootObject.data.get.head
 			val attributes = dataHead.attributes.get
 			val relationships = dataHead.relationships.get
-			val addressRel = relationships.get("address").get
+			val addressRel = relationships("address")
 			val addressKey = addressRel.data.get.head
 			val address = Address("MockStreet", "MockBuilding", addressKey.id)
 
 			Success(House(
-					attributes.get("price").get.as[BigDecimal],
+					attributes("price").asInstanceOf[JsonApiNumber].value,
 					address,
           dataHead.key.id
 				))

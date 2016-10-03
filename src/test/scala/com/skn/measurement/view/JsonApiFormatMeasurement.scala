@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.skn.api.view.jsonapi.JsonApiMapper
-import com.skn.api.view.jsonapi.Model.RootObject
+import com.skn.api.view.jsonapi.JsonApiPalyModel.RootObject
 import com.skn.common.view.model._
 import com.skn.measurement.view.JsonApiFormatMeasurement.BenchmarkState
 import play.api.libs.json.Json

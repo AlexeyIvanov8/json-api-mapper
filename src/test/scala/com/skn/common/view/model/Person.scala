@@ -1,10 +1,10 @@
 package com.skn.common.view.model
 
-import play.api.libs.json.{JsNumber, JsString, JsValue}
-import play.api.libs.json.Format._
-import com.skn.api.view.jsonapi.Model._
-import com.skn.api.view.jsonapi.Model.{Data, ObjectKey, RootObject}
+import com.skn.api.view.jsonapi.JsonApiPalyModel._
+import com.skn.api.view.jsonapi.JsonApiPalyModel.{Data, ObjectKey, RootObject}
 import com.skn.api.Success
+import com.skn.api.view.jsonapi.JsonApiValueModel.{JsonApiNumber, JsonApiString}
+import com.skn.api.view.jsonapi.JsonApiValueModel._
 import com.skn.api.view.jsonapi.RootObjectMapper
 
 
@@ -20,13 +20,13 @@ object PersonFormat
     {
       val data = rootObject.data.get.head
       val add = rootObject.meta match {
-        case Some(value) => value("test").asInstanceOf[JsonApiNumber].value.intValue()
+        case Some(value) => value("test").as[BigDecimal].intValue()
         case None => 0 }
 
       val attributes = data.attributes.get
       Success(Person(
         attributes("name").as[String],
-        attributes("age").as[Int] + add,
+        attributes("age").as[BigDecimal].intValue() + add,
         data.key.id ))
     }
 
@@ -36,8 +36,8 @@ object PersonFormat
         RootObject(
           Some(Data(ObjectKey("person", person.id),
             Some(Attributes(
-              "name" -> JsString(person.name),
-              "age" -> JsNumber(person.age) ))
+              "name" -> JsonApiString(person.name),
+              "age" -> JsonApiNumber(person.age) ))
           )::Nil),
           None,
           Some(Meta(("test", JsonApiNumber(999))))

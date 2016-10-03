@@ -1,10 +1,10 @@
 package com.skn.api.view.jsonapi
 
 import com.skn.api.version.ApiVersion
-import com.skn.api.view.jsonapi.Model.{Attributes, Data, Error, JsonApiInfo, JsonApiValue, JsonPointer, Link, Meta, ObjectKey, Related, Relationship, Relationships, RootObject, Source}
+import com.skn.api.view.jsonapi.JsonApiPalyModel.{Attributes, Data, Error, JsonApiInfo, JsonPointer, Link, Meta, ObjectKey, Related, Relationship, Relationships, RootObject, Source}
 import play.api.libs.json._
-
 import com.skn.api.view.jsonapi.JsonApiValueFormat._
+import com.skn.api.view.jsonapi.JsonApiValueModel.JsonApiValue
 /**
 *
 * Created by Sergey on 02.10.2016.
@@ -22,8 +22,8 @@ object JsonApiPlayFormat
 
   val attributesFormat = new Format[Attributes]
   {
-    def writes(attributes: Attributes) = JsObject( for( (key, value) <- attributes ) yield key -> value )
-    def reads(json: JsValue) = JsSuccess( json.as[Map[String, JsValue]] )
+    def writes(attributes: Attributes) = JsObject( for( (key, value) <- attributes ) yield key -> Json.toJson(value) )
+    def reads(json: JsValue) = JsSuccess( json.as[Map[String, JsonApiValue]] )
   }
 
   val relatedFormat = new Format[Related]

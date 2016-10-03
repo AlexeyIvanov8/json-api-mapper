@@ -1,7 +1,8 @@
 package com.skn.api.view.jsonapi
 
 import com.skn.api.view.exception.ParsingException
-import com.skn.api.view.jsonapi.Model.{JsonApiArray, JsonApiBoolean, JsonApiNumber, JsonApiObject, JsonApiString, JsonApiValue}
+import com.skn.api.view.jsonapi.JsonApiValueModel.JsonApiValue
+import com.skn.api.view.jsonapi.JsonApiValueModel._
 import play.api.libs.json._
 import play.api.libs.json.Format._
 
@@ -11,16 +12,6 @@ import play.api.libs.json.Format._
   */
 object JsonApiValueFormat
 {
-  /*implicit def jsonApiStringFormat = Json.format[JsonApiString]
-  implicit def jsonApiIntFormat = Json.format[JsonApiInt]
-  implicit def jsonApiDoubleFormat = Json.format[JsonApiDouble]
-  implicit def jsonApiNumberFormat = Json.format[JsonApiNumber]
-  implicit def jsonApiBooleanFormat = Json.format[JsonApiBoolean]
-
-  implicit def jsonApiArrayFormat: Format[JsonApiArray] = Json.format[JsonApiArray]
-
-  implicit def jsonApiObjectFormat: Format[JsonApiObject] = Json.format[JsonApiObject]*/
-
   implicit def jsonApiValueFormat = new Format[JsonApiValue]
   {
     override def reads(json: JsValue): JsResult[JsonApiValue] = JsSuccess(readJsonApiValue(json))

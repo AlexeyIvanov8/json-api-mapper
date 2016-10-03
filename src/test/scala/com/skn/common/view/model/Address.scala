@@ -1,7 +1,8 @@
 package com.skn.common.view.model
 
-import com.skn.api.view.jsonapi.Model.{Attributes, Data, ObjectKey, RootObject}
+import com.skn.api.view.jsonapi.JsonApiPalyModel.{Attributes, Data, ObjectKey, RootObject}
 import com.skn.api.Success
+import com.skn.api.view.jsonapi.JsonApiValueModel.JsonApiString
 import com.skn.api.view.jsonapi.RootObjectMapper
 import play.api.libs.json.JsString
 
@@ -17,8 +18,8 @@ object AddressFormat
 							Some(Data(
 									ObjectKey("address", address.id),
 									Some(Attributes(
-											("street", JsString(address.street)),
-											("building", JsString(address.building))
+											("street", JsonApiString(address.street)),
+											("building", JsonApiString(address.building))
 										))
 								) :: Nil)
 						)
@@ -28,7 +29,7 @@ object AddressFormat
 		{
 			val dataHead = root.data.get.head
 			val attrs = dataHead.attributes.get
-			Success(Address(attrs.get("street").get.as[String], attrs.get("building").get.as[String], dataHead.key.id))
+			Success(Address(attrs("street").asInstanceOf[JsonApiString].value, attrs("building").asInstanceOf[JsonApiString].value, dataHead.key.id))
 		}
 	}
 }

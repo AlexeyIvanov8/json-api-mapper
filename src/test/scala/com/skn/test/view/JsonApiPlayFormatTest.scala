@@ -5,11 +5,15 @@ import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import play.api.libs.json.{JsArray, JsObject, Json}
 import com.skn.common.view.model._
 import com.skn.api.Success
-import com.skn.api.view.jsonapi.Model.RootObject
+import com.skn.api.view.jsonapi.JsonApiPalyModel.RootObject
 import com.skn.api.view.jsonapi.JsonApiPlayFormat.rootFormat
 import com.skn.api.view.jsonapi.FieldNames
+import com.skn.api.view.jsonapi.JsonApiValueModel.{JsonApiArray, JsonApiNumber, JsonApiObject, JsonApiString, JsonApiValue}
 import com.skn.test.JsonApiTest
 import com.skn.common.view.BaseUnitTest
+
+import com.skn.api.view.jsonapi.JsonApiValueFormat._
+import com.skn.api.view.jsonapi.JsonApiValueModel._
 
 class JsonApiPlayFormatTest extends BaseUnitTest
 {
@@ -86,5 +90,22 @@ class JsonApiPlayFormatTest extends BaseUnitTest
     jacksonMapper.registerModule(DefaultScalaModule)
     val json = jacksonMapper.writeValueAsString(bds)
     logger.debug("big decimal json = "+json)
+  }
+
+  "A JsonApiValue" should "support composite objects" taggedAs JsonApiTest in
+  {
+    val objectTop = JsonApiObject(Map(
+      "field" -> JsonApiString("field value"),
+      "numTest" -> JsonApiNumber(96),
+      "arrayF" -> JsonApiArray(JsonApiNumber(4) :: JsonApiObject(Map("inner" -> JsonApiNumber(3))) :: Nil),
+      "objF" -> JsonApiObject(Map("in2" -> JsonApiString("in2val")))
+    ))
+    val json = Json.toJson(objectTop)
+    val parsedObject = json.as[JsonApiValue].as[Map[String, JsonApiValue]]
+    parsedObject.size should be (objectTop.map.size)
+    parsedObject("field").as[String] shouldEqual "field value"
+    parsedObject("numTest").as[BigDecimal] shouldEqual BigDecimal(96)
+    parsedObject("arrayF") shouldBe a [JsonApiArray]
+    parsedObject("arrayF").as[Seq[JsonApiValue]].head.as[BigDecimal] shouldEqual BigDecimal(4)
   }
 }
