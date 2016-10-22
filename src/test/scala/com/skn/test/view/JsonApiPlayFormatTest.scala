@@ -11,9 +11,9 @@ import com.skn.api.view.jsonapi.FieldNames
 import com.skn.api.view.jsonapi.JsonApiValueModel.{JsonApiArray, JsonApiNumber, JsonApiObject, JsonApiString, JsonApiValue}
 import com.skn.test.JsonApiTest
 import com.skn.common.view.BaseUnitTest
-
 import com.skn.api.view.jsonapi.JsonApiValueFormat._
 import com.skn.api.view.jsonapi.JsonApiValueModel._
+import com.skn.api.view.model.{Test, TestLinked, ViewItem}
 
 class JsonApiPlayFormatTest extends BaseUnitTest
 {
@@ -107,5 +107,12 @@ class JsonApiPlayFormatTest extends BaseUnitTest
     parsedObject("numTest").as[BigDecimal] shouldEqual BigDecimal(96)
     parsedObject("arrayF") shouldBe a [JsonApiArray]
     parsedObject("arrayF").as[Seq[JsonApiValue]].head.as[BigDecimal] shouldEqual BigDecimal(4)
+  }
+
+  "A ViewBuildMacros" should "enumerate members of class" taggedAs JsonApiTest in
+  {
+    val person = PersonView("ref", 44)
+    val res = PersonView.buildView(Test("stggr", 4455, TestLinked("L name", Some(54)), Some(11)))
+    logger.debug("Macro result = {}", res)
   }
 }

@@ -16,6 +16,10 @@ object JsonApiPalyModel
   implicit def Meta(values: (String, JsonApiValue)*): Meta = Map(values: _*)
 
   case class ObjectKey(`type`: String, id: Option[Long] = None)
+  implicit object ObjectKey
+  {
+    def apply(`type`: String, id: Long): ObjectKey = ObjectKey(`type`, Some(id))
+  }
 
   case class JsonApiInfo(version: Option[ApiVersion] = None, meta: Option[Meta] = None)
 

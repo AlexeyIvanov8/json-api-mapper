@@ -6,8 +6,9 @@ import com.skn.api.view.jsonapi.JsonApiPalyModel._
 import com.skn.api.{Result, Success}
 import com.skn.api.view.jsonapi.JsonApiPalyModel.Relationship
 import com.skn.api.view.jsonapi.RootObjectMapper
+import com.skn.api.view.model.ViewItem
 
-case class House(price: BigDecimal, address: Address, id: Option[Long] = None)
+case class House(price: BigDecimal, address: Address, id: Option[Long] = None) extends ViewItem { val key = ObjectKey("house", id) }
 
 object HouseFormat
 {
@@ -22,7 +23,7 @@ object HouseFormat
 						  Some(Link("http://skn.com/v1/house/1")),
 							Some(Relationships(
 									("address", Relationship(Link("http://skm.com/v1/house/1/address"), Some(ObjectKey("address", house.address.id) :: Nil))),
-									("address_v2", Relationship(Link(Related("http://skm.com/v2/house/1/address")), (ObjectKey("address", house.address.id) :: Nil) ))
+									("address_v2", Relationship(Link(Related("http://skm.com/v2/house/1/address")), ObjectKey("address", house.address.id) :: Nil ))
 								))
 					) :: Nil)
 				)

@@ -17,6 +17,7 @@ object JsonApiValueModel
 
   case class JsonApiString(value: String) extends JsonApiValue
   case class JsonApiNumber(value: BigDecimal) extends JsonApiValue
+  case class JsonApiFloat(value: Float) extends JsonApiValue
   case class JsonApiBoolean(value: Boolean) extends JsonApiValue
   case class JsonApiArray(seq: Seq[JsonApiValue]) extends JsonApiValue
   case class JsonApiObject(map: Map[String, JsonApiValue]) extends JsonApiValue
@@ -36,6 +37,14 @@ object JsonApiValueModel
       case _ => throw ParsingException("Expected "+JsonApiNumber.getClass.getName+" value instead "+jsonApi.getClass.getName)
     }
   }
+
+  /*class JsonApiFloatReader extends JsonApiValueReader[Float]
+  {
+    def read(jsonApi: JsonApiValue) = jsonApi match {
+      case JsonApiFloat(value) => value
+      case _ => throw ParsingException("Expected " + JsonApiFloat.getClass.getName + "value instead " + jsonApi.getClass.getName)
+    }
+  }*/
 
   class JsonApiBooleanReader extends JsonApiValueReader[Boolean]
   {
@@ -63,6 +72,7 @@ object JsonApiValueModel
 
   implicit val stringReader = new JsonApiStringReader
   implicit val numberReader = new JsonApiNumberReader
+  //implicit val floatReader = new JsonApiFloatReader
   implicit val booleanReader = new JsonApiBooleanReader
   implicit val arrayReader = new JsonApiArrayReader
   implicit val objectReader = new JsonApiObjectReader

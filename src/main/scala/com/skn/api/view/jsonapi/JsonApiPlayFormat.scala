@@ -52,7 +52,17 @@ object JsonApiPlayFormat
     ))
   }
 
-  val objectKeyFormat = Json.format[ObjectKey]
+  // TODO: macro definition format not work on 2.12
+  val objectKeyFormat = new Format[ObjectKey] {
+    override def reads(json: JsValue): JsResult[ObjectKey] = JsSuccess(
+        ObjectKey((json \ FieldNames.`type`).as[String], (json \ FieldNames.id).asOpt[Long]))
+
+    override def writes(key: ObjectKey): JsValue = JsObject(Seq(
+      FieldNames.`type` -> JsString(key.`type`),
+      FieldNames.id -> Json.toJson(key.id)
+    ))
+
+  }//Json.format[ObjectKey]
 
   val apiVersionFormat = new Format[ApiVersion]
   {
@@ -121,7 +131,11 @@ object JsonApiPlayFormat
       ))
   }
 
-  val jsonPointerFormat: Format[JsonPointer] = Json.format[JsonPointer]
+  val jsonPointerFormat: Format[JsonPointer] = new Format[JsonPointer] {
+    override def reads(json: JsValue): JsResult[JsonPointer] = JsSuccess(JsonPointer(json.as[Seq[String]]))
+
+    override def writes(pointer: JsonPointer): JsValue = JsArray(pointer.values.map(value => JsString(value)))
+  } //Json.format[JsonPointer]
 
   val sourceFormat = new Format[Source]
   {
