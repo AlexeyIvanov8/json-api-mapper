@@ -1,6 +1,6 @@
 package com.skn.api.view.model
 
-import com.skn.api.view.jsonapi.JsonApiPalyModel.ObjectKey
+import com.skn.api.view.jsonapi.JsonApiPlayModel.ObjectKey
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.language.experimental.macros

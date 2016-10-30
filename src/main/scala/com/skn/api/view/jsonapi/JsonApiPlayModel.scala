@@ -6,7 +6,7 @@ import com.skn.api.view.jsonapi.JsonApiValueModel.JsonApiValue
 /**
 * Created by Sergey on 01.10.2016.
 */
-object JsonApiPalyModel
+object JsonApiPlayModel
 {
 
   type Attributes = Map[String, JsonApiValue]

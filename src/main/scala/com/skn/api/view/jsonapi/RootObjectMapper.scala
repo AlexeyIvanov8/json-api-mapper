@@ -1,6 +1,6 @@
 package com.skn.api.view.jsonapi
 
-import com.skn.api.view.jsonapi.JsonApiPalyModel.{Data, Meta, Relationship, RootObject}
+import com.skn.api.view.jsonapi.JsonApiPlayModel.{Data, Meta, Relationship, RootObject}
 import com.skn.api.{Result, Success}
 
 /**

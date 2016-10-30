@@ -1,6 +1,6 @@
 package com.skn.common.view.model
 
-import com.skn.api.view.jsonapi.JsonApiPalyModel.ObjectKey
+import com.skn.api.view.jsonapi.JsonApiPlayModel.ObjectKey
 import com.skn.api.view.model.{Test, ViewItem}
 import com.skn.api.view.model.ViewBuildMacros._
 

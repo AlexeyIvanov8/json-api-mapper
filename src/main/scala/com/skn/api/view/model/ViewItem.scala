@@ -1,26 +1,47 @@
-package com.skn.api.view.model
+package com.skn.api.view
 
-import com.skn.api.view.jsonapi.JsonApiPalyModel.ObjectKey
+import com.skn.api.view.jsonapi.JsonApiPlayModel.ObjectKey
 
 /**
-  *
+  * Model for present view structure
   * Created by Sergey on 03.10.2016.
   */
-trait ViewItem
-{
-  val key: ObjectKey
-}
+package model {
 
-/**
-  * Trait, that mark object present JsonObject = Map[String, JsValue]
-  */
-trait ViewObject
+  /**
+    * Trait for classes that contains data of view
+    */
+  trait ViewItem { val key: ObjectKey }
 
-/**
-  * Trait for create values who can be serialize/deserialize in String
-  */
-trait ViewValue
-{
-  override def toString: String = super.toString
-  def fromString[T <: ViewValue](str: String): T
+  /**
+    * Container for view's object like Option
+    * @tparam V - type of view data
+    */
+  class ViewLink[V <: ViewItem](val key: ObjectKey)
+  {
+    def this(view: V) = this(view.key)
+  }
+
+  /**
+    * Trait, that mark object present JsonObject = Map[String, JsValue]
+    */
+  trait ViewObject
+
+  /**
+    * Trait for create values who can be serialize/deserialize in String
+    * Also need define companion object with ViewValueFactory trait
+    */
+  trait ViewValue {
+    override def toString: String = super.toString
+  }
+
+  /**
+    * When we discover class during deserialization process we have only types without instance.
+    * So we need factory for creation instance from String
+    * @tparam V - type of instance for creation
+    */
+  trait ViewValueFactory[V <: ViewValue] {
+    def fromString(str: String): V
+  }
+
 }

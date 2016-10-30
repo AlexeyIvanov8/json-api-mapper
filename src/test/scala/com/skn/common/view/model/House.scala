@@ -1,10 +1,10 @@
 package com.skn.common.view.model
 
 import com.skn.api.view.jsonapi.JsonApiValueModel.JsonApiNumber
-import com.skn.api.view.jsonapi.JsonApiPalyModel.{Data, Link, ObjectKey, Relationships, RootObject}
-import com.skn.api.view.jsonapi.JsonApiPalyModel._
+import com.skn.api.view.jsonapi.JsonApiPlayModel.{Data, Link, ObjectKey, Relationships, RootObject}
+import com.skn.api.view.jsonapi.JsonApiPlayModel._
 import com.skn.api.{Result, Success}
-import com.skn.api.view.jsonapi.JsonApiPalyModel.Relationship
+import com.skn.api.view.jsonapi.JsonApiPlayModel.Relationship
 import com.skn.api.view.jsonapi.RootObjectMapper
 import com.skn.api.view.model.ViewItem
 

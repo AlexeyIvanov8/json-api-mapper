@@ -2,10 +2,10 @@ package com.skn.test.view
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import play.api.libs.json.{JsArray, JsObject, Json}
+import play.api.libs.json.{JsArray, Json}
 import com.skn.common.view.model._
 import com.skn.api.Success
-import com.skn.api.view.jsonapi.JsonApiPalyModel.RootObject
+import com.skn.api.view.jsonapi.JsonApiPlayModel.RootObject
 import com.skn.api.view.jsonapi.JsonApiPlayFormat.rootFormat
 import com.skn.api.view.jsonapi.FieldNames
 import com.skn.api.view.jsonapi.JsonApiValueModel.{JsonApiArray, JsonApiNumber, JsonApiObject, JsonApiString, JsonApiValue}
@@ -13,7 +13,7 @@ import com.skn.test.JsonApiTest
 import com.skn.common.view.BaseUnitTest
 import com.skn.api.view.jsonapi.JsonApiValueFormat._
 import com.skn.api.view.jsonapi.JsonApiValueModel._
-import com.skn.api.view.model.{Test, TestLinked, ViewItem}
+import com.skn.api.view.model.{Test, TestLinked}
 
 class JsonApiPlayFormatTest extends BaseUnitTest
 {

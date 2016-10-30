@@ -2,7 +2,7 @@ package com.skn.api
 
 import java.util.concurrent._
 
-import com.skn.api.view.jsonapi.JsonApiPalyModel.ObjectKey
+import com.skn.api.view.jsonapi.JsonApiPlayModel.ObjectKey
 import com.skn.api.view.model.{DefaultViewMapper, ViewItem}
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory

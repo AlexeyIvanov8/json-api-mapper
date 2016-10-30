@@ -1,18 +1,19 @@
 package com.skn.measurement.view
 
+import java.time.LocalDateTime
+
 import org.openjdk.jmh.annotations._
 import java.util.concurrent.TimeUnit
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.skn.api.view.jsonapi.JsonApiMapper
-import com.skn.api.view.jsonapi.JsonApiPalyModel.RootObject
-import com.skn.api.view.model.DefaultViewMapper
+import com.skn.api.view.jsonapi.JsonApiPlayModel.{ObjectKey, RootObject}
+import com.skn.api.view.model.{DefaultViewMapper, TestLinked, ViewLink}
 import com.skn.common.view.model._
-import com.skn.common.view.model.view.{CustomObject, TestView}
+import com.skn.common.view.model.view.{CustomObject, Home, TestLink, TestView}
 import com.skn.measurement.view.JsonApiFormatMeasurement.BenchmarkState
 import play.api.libs.json.Json
-
 
 import scala.reflect.runtime.{universe => ru}
 import scala.util.Random
@@ -34,14 +35,18 @@ class JsonApiFormatMeasurement //extends BaseUnitTest
   @Threads(1)
   //@Benchmark
   def create(state: BenchmarkState): TestView = {
-    TestView("Js string value" + state.random.nextLong(), state.random.nextLong(), Some(0),
+    TestView("Js string value" + state.random.nextLong(), state.random.nextLong(),
+      new Home("TH"), Some(0),
+      new ViewLink(TestLink(ObjectKey("link", 1L), Some(LocalDateTime.now()))),
       Some(CustomObject(Some("customName"), state.random.nextInt(), Some(3.4 :: 4.5 :: Nil))))
   }
 
   def reflect(state: BenchmarkState): Unit = {
     //val test = Some(List() ++ 3.4 ++ 4.5 ++ 23.6)//Person("test", 23, None)
 
-    val item = TestView("Js string value" + state.random.nextLong().toString, state.random.nextLong(), Some(0L),
+    val item = TestView("Js string value" + state.random.nextLong().toString,
+      state.random.nextLong(), new Home("TH"), Some(0L),
+      new ViewLink(TestLink(ObjectKey("link", 1L), Some(LocalDateTime.now()))),
       Some(CustomObject(Some("customName"), 34423, Some(List(3.4, 4.5)))))
     state.viewMapper.toData(item)
     /*val itemClass = reflectItem.symbol.asClass
@@ -78,7 +83,9 @@ class JsonApiFormatMeasurement //extends BaseUnitTest
   @Threads(1)
   //@Benchmark
   def writeView(state: BenchmarkState): Unit = {
-    state.viewMapper.toData(TestView("Js string value" + state.random.nextLong(), state.random.nextLong(), Some(0),
+    state.viewMapper.toData(TestView("Js string value" + state.random.nextLong(),
+      state.random.nextLong(), new Home("TH"), Some(0),
+      new ViewLink(TestLink(ObjectKey("link", 1L), Some(LocalDateTime.now()))),
       Some(CustomObject(Some("customName"), state.random.nextInt(), Some(3.4 :: 4.5 :: Nil)))))
   }
 
@@ -92,7 +99,9 @@ class JsonApiFormatMeasurement //extends BaseUnitTest
   //@Benchmark
   def writeWithJackson1(state: BenchmarkState): Unit = {
     //val root = state.houseFormat.toRootObject(randomHouse(state.random))
-    val root = TestView("Js string value" + state.random.nextLong(), state.random.nextLong(), Some(0),
+    val root = TestView("Js string value" + state.random.nextLong(), state.random.nextLong(),
+      new Home("TH"), Some(0),
+      new ViewLink(TestLink(ObjectKey("link", 1L), Some(LocalDateTime.now()))),
       Some(CustomObject(Some("customName"), state.random.nextInt(), Some(3.4 :: 4.5 :: Nil))))
     state.jacksonMapper.writeValueAsString(root)
   }
@@ -101,7 +110,9 @@ class JsonApiFormatMeasurement //extends BaseUnitTest
   //@Benchmark
   def writeWithJackson4(state: BenchmarkState): Unit = {
     //val root = state.houseFormat.toRootObject(randomHouse(state.random))
-    val root = TestView("Js string value" + state.random.nextLong(), state.random.nextLong(), Some(0),
+    val root = TestView("Js string value" + state.random.nextLong(), state.random.nextLong(),
+      new Home("TH"), Some(0),
+      new ViewLink(TestLink(ObjectKey("link", 1L), Some(LocalDateTime.now()))),
       Some(CustomObject(Some("customName"), state.random.nextInt(), Some(3.4 :: 4.5 :: Nil))))
     state.jacksonMapper.writeValueAsString(root)
   }
