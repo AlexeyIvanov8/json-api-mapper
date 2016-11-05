@@ -2,8 +2,8 @@ package com.skn.api
 
 import java.util.concurrent._
 
-import com.skn.api.view.jsonapi.JsonApiPlayModel.ObjectKey
-import com.skn.api.view.model.{DefaultViewMapper, ViewItem}
+import com.skn.api.view.jsonapi.JsonApiPlayModel.{Link, ObjectKey}
+import com.skn.api.view.model.{LinkDefiner, SimpleLinkDefiner, ViewItem, ViewWriter}
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
@@ -25,7 +25,7 @@ object TestApp extends App {
       val futures = for (i <- 0 until threads) yield executorService.submit(new Callable[Long] {
         override def call(): Long = {
           var count = 0L
-          val viewMapper = new DefaultViewMapper
+          val viewMapper = new ViewWriter(new SimpleLinkDefiner)
           for (j <- 0 to batch) yield {
             val item = TestView("Js string value", 998, Some(1),
               Some(CustomObject(Some("customName"), 94, Some(3.4 :: 4.5 :: Nil))))

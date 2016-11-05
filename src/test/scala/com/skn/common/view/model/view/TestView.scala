@@ -25,5 +25,5 @@ case class TestView(str: String,
                     num: BigDecimal,
                     home: Home,
                     id: Option[Long],
-                    link: ViewLink[TestLink],
+                    link: Option[ViewLink[TestLink]],
                     custom: Option[CustomObject]) extends ViewItem { val key = ObjectKey("testType", id) }

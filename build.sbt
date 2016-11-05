@@ -1,6 +1,7 @@
 
 import pl.project13.scala.sbt.JmhPlugin
 
+val scalaVersionString = "2.12.0-SNAPSHOT"
 // for super safe compiler plugin
 //resolvers += "Artima Maven Repository" at "http://repo.artima.com/releases"
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
@@ -10,10 +11,10 @@ lazy val commonSettings = Seq(
 	organization := "com.skn",
 	name := "jsonapi-mapper",
 	version := "0.1",
-	scalaVersion := "2.12.0-SNAPSHOT",
-  scalaVersion in Test := "2.12.0-SNAPSHOT",
-  scalaVersion in ThisBuild := "2.12.0-SNAPSHOT",
-  scalaBinaryVersion := "2.12.0-SNAPSHOT",
+	scalaVersion := scalaVersionString,
+  scalaVersion in Test := scalaVersionString,
+  scalaVersion in ThisBuild := scalaVersionString,
+  scalaBinaryVersion := scalaVersionString,
   scalaHome := Some(file("F:\\work\\scala-lang\\build\\pack"))
 )
 
@@ -30,8 +31,8 @@ libraryDependencies ++= Seq(
   "com.fasterxml.jackson.module" % "jackson-module-scala_2.12.0-RC1" % "2.8.3",
 // https://mvnrepository.com/artifact/org.scalamacros/quasiquotes_2.10
   //"org.scalamacros" % "quasiquotes_2.10" % "2.1.0",
-  "org.scalatest" % "scalatest_2.12.0-RC1" % "3.0.0"
-
+  "org.scalatest" % "scalatest_2.12.0-RC1" % "3.0.0",
+	"org.scala-lang" % "scala-reflect" % scalaVersionString
 )
 
 logBuffered in Test := false

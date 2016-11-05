@@ -3,7 +3,7 @@ package com.skn.test.view
 import java.time.LocalDateTime
 import java.util.concurrent._
 
-import com.skn.api.view.model.{DefaultViewMapper, NewViewMapper, ViewLink}
+import com.skn.api.view.model.{SimpleLinkDefiner, ViewLink, ViewReader, ViewWriter}
 import com.skn.common.view.BaseUnitTest
 import com.skn.common.view.model.view.{CustomObject, Home, TestLink, TestView}
 import play.api.libs.json.Json
@@ -19,17 +19,17 @@ class ViewModelTest extends BaseUnitTest
       1000, TimeUnit.MILLISECONDS,
       new LinkedBlockingQueue[Runnable]())
 
-    val viewMapper = new DefaultViewMapper
-    val newViewMapper = new NewViewMapper
+    val viewMapper = new ViewWriter(new SimpleLinkDefiner)
+    val newViewMapper = new ViewReader
 
     val str = "Js string value"
     val view = TestView(str, 998,
       new Home("TH"),
       Some(0),
-      new ViewLink(TestLink(ObjectKey("testLink", 1L), Some(LocalDateTime.now()))),
+      Some(new ViewLink(TestLink(ObjectKey("testLink", 1L), Some(LocalDateTime.now())))),
       Some(CustomObject(Some("customName"), 94, Some(3.4 :: 4.5 :: Nil))))
 
-    val serialized = viewMapper.toData(view)
+    val serialized = viewMapper.write(view)
     val deserialized = newViewMapper.read[TestView](serialized)
 
     logger.info("Serialized = " + Json.toJson(serialized)(dataFormat))

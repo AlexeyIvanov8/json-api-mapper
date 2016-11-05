@@ -12,18 +12,11 @@ import scala.reflect.runtime.{universe => ru}
 /**
   * Created by Sergey on 28.10.2016.
   */
-class NewViewMapper
-{
-  val logger = LoggerFactory.getLogger(classOf[NewViewMapper])
-
-  val OptionType = ru.typeOf[Option[_]]
-  val ViewLinkType = ru.typeOf[ViewLink[_]]
-  val ViewValueType = ru.typeOf[ViewValue]
-  val SeqType = ru.typeOf[Seq[_]]
+class ViewReader {
+  val logger = LoggerFactory.getLogger(classOf[ViewReader])
 
 
-  def read[V <: ViewItem](data: Data)(implicit classTag: ClassTag[V]): V =
-  {
+  def read[V <: ViewItem](data: Data)(implicit classTag: ClassTag[V]): V = {
     val mirror = ru.runtimeMirror(classTag.runtimeClass.getClassLoader)
     val objectType = mirror.classSymbol(classTag.runtimeClass).typeSignature
     val createObjectDescription = cacheCreateDescription(objectType, classTag)
@@ -33,54 +26,61 @@ class NewViewMapper
     constructObject(createObjectDescription.mirror, objectType, constructorArgs.map { case (k, v) => v }, args.toMap).asInstanceOf[V]
   }
 
-  def readFields(mirror: ru.Mirror, fieldMirrors: Seq[ru.TermSymbol], data: Data): Seq[(ru.TermSymbol, Option[_])] =
-  {
+  def readFields(mirror: ru.Mirror, fieldMirrors: Seq[ru.TermSymbol], data: Data): Seq[(ru.TermSymbol, Any)] = {
     fieldMirrors.map { fieldMirror =>
       val fieldName = getFieldName(fieldMirror)
       fieldMirror -> (fieldMirror.typeSignature match {
-        case v if v <:< OptionType => readField(mirror, data, v.typeArgs.head, fieldName)
-        case _  => readField(mirror, data, fieldMirror.typeSignature, fieldName)
+        case v if v <:< ViewMappingInfo.OptionType => readField(mirror, isOption = true, data, v.typeArgs.head, fieldName) match {
+          case None => None
+          case r: Any => Some(r)
+        }
+        case _ => readField(mirror, isOption = false, data, fieldMirror.typeSignature, fieldName)
       })
     }
   }
 
-  def readField(mirror: ru.Mirror, data: Data, field: ru.Type, fieldName: String): Option[_] =
-  {
+  def readField(mirror: ru.Mirror, isOption: Boolean, data: Data, field: ru.Type, fieldName: String): Any = {
     field match {
-      case v if v <:< ViewLinkType => readRelationship(data, fieldName)
-      case v if v <:< SeqType && v.typeArgs.head <:< ViewLinkType => readRelationships(data, fieldName)
-      case _ => readAttribute(mirror, data, field, fieldName)
+      case v if v <:< ViewMappingInfo.ViewLinkType => readRelationship(isOption, data, fieldName, readOneRelationship)
+      case v if v <:< ViewMappingInfo.SeqType && v.typeArgs.head <:< ViewMappingInfo.ViewLinkType => readRelationship(isOption, data, fieldName, readSeqRelationship)
+      case _ => readAttribute(mirror, isOption, data, field, fieldName)
     }
   }
 
-  def getRelationshipData(data: Data, relationshipName: String): Option[Seq[ObjectKey]] =
-  {
-    data.relationships match {
+  def readRelationship(isOption: Boolean, data: Data, relationshipName: String, reader: Seq[ObjectKey] => Any): Any = {
+    val res = data.relationships match {
       case Some(relationships) => relationships.get(relationshipName) match {
-          case Some(relationship) => relationship.data
-          case None => None
-        }
+        case Some(relationship) => relationship.data
+        case None => None
+      }
       case None => None
     }
-  }
-
-  def readAttribute(mirror: ru.Mirror, data: Data, mappedType: ru.Type, fieldName: String): Option[_] = {
-    data.attributes.get.get(fieldName).map { v =>
-      logger.info("begin process attr "+fieldName)
-      fromJsValue(mappedType, v, mirror) }
-  }
-
-  def readRelationship[V <: ViewItem](data: Data, fieldName: String): Option[ViewLink[V]] =
-    getRelationshipData(data, fieldName).map { keys =>
-      if (keys.tail.nonEmpty) throw ParsingException("Expected one elt data in " + keys)
-      new ViewLink[V](keys.head)
-    }
-
-  def readRelationships[V <: ViewItem](data: Data, fieldName: String): Option[Seq[ViewLink[V]]] = {
-    getRelationshipData(data, fieldName).map { keys =>
-      keys.map(key => new ViewLink[V](key))
+    res match {
+      case Some(relationship) => reader(relationship)
+      case None if !isOption => throw ParsingException("Not found relationship field " + relationshipName)
+      case _ => None
     }
   }
+
+  def readAttribute(mirror: ru.Mirror, isOption: Boolean, data: Data, mappedType: ru.Type, fieldName: String): Any = {
+    val res = data.attributes match {
+      case Some(attributes) => attributes.get(fieldName)
+      case None => None
+    }
+    res match {
+      case Some(attribute) => fromJsValue(mappedType, attribute, mirror)
+      case None if !isOption => throw ParsingException("Not found attribute with name " + fieldName)
+      case _ => None
+    }
+  }
+
+  def readOneRelationship[V <: ViewItem](keys: Seq[ObjectKey]): ViewLink[V] ={
+    if (keys.tail.nonEmpty) throw ParsingException("Expected one elt data in " + keys)
+    new ViewLink[V](keys.head)
+  }
+
+  def readSeqRelationship[V <: ViewItem](keys: Seq[ObjectKey]): Seq[ViewLink[V]] =
+    keys.map(key => new ViewLink[V](key))
 
   def getFieldName(field: ru.TermSymbol) = field.name.toString
 
@@ -152,7 +152,7 @@ class NewViewMapper
 
   private def fromJsValue(mappedType: ru.Type, jsValue: JsonApiValue, mirror: ru.Mirror): Any =
   {
-    val isOption = mappedType <:< OptionType
+    val isOption = mappedType <:< ViewMappingInfo.OptionType
     val fieldType = if(isOption) mappedType.typeArgs.head else mappedType
     val fieldMapper = fieldsMapping.find { case (t, mapper) => fieldType=:=t }
 
@@ -160,10 +160,10 @@ class NewViewMapper
       case Some((t, mapper)) => mapper.fromJsValue(jsValue)
       case None =>
         fieldType match {
-          case t if t <:< ViewValueType =>
+          case t if t <:< ViewMappingInfo.ViewValueType =>
             cacheFromStringMethod(mirror, fieldType).fromString(jsValue.as[String])
 
-          case t if t <:< SeqType =>
+          case t if t <:< ViewMappingInfo.SeqType =>
             val jsArray = jsValue.as[Seq[JsonApiValue]]
             val seqType = fieldType.typeArgs.head
             jsArray.map(value => fromJsValue(seqType, value, mirror))
@@ -182,22 +182,22 @@ class NewViewMapper
 
   private def constructObject(mirror: ru.Mirror,
                               objectType: ru.Type,
-                              constructorArgs: Seq[Option[_]],
-                              variables: Map[ru.TermSymbol, Option[_]]): Any = {
+                              constructorArgs: Seq[Any],
+                              variables: Map[ru.TermSymbol, Any]): Any = {
     val constructorMirror =  mirror.reflectClass(objectType.typeSymbol.asClass)
       .reflectConstructor(objectType.typeSymbol.asClass.primaryConstructor.asMethod)
-    val result = constructorMirror(constructorArgs.map(arg => arg.get): _*)
+    val result = constructorMirror(constructorArgs: _*)
     variables.foreach { case (key, value) =>
-      mirror.reflect(result).reflectMethod(key.setter.asMethod).apply(value.get) }
+      mirror.reflect(result).reflectMethod(key.setter.asMethod).apply(value) }
     result
   }
 
   private def createObject(mirror: ru.Mirror, objectType: ru.Type, jsObject: Map[String, JsonApiValue]): Any = {
     val desc = cacheCreateDescription(mirror, objectType)
     val constructorArgs = desc.constructorParams.map(arg =>
-      Some(fromJsValue(arg.typeSignature, jsObject(arg.name.toString), mirror)) )
+      fromJsValue(arg.typeSignature, jsObject(arg.name.toString), mirror) )
     val variables = desc.params.map(variable =>
-      variable -> Some(fromJsValue(variable.typeSignature, jsObject(variable.name.toString), mirror)) )
+      variable -> fromJsValue(variable.typeSignature, jsObject(variable.name.toString), mirror) )
       .toMap
     constructObject(mirror, objectType, constructorArgs, variables)
   }
