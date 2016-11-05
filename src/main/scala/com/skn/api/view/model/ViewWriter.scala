@@ -12,53 +12,16 @@ import scala.reflect.runtime.{universe => ru}
 /**
   * Created by Sergey on 30.10.2016.
   */
-class ViewWriter(val linkDefiner: LinkDefiner) extends ViewMapper {
+class ViewWriter(val linkDefiner: LinkDefiner)  {
   private val logger = LoggerFactory.getLogger(classOf[ViewWriter])
 
   // cases definitions
-  case class ReflectData(mirror: ru.Mirror, itemType: ru.Type, vars: Map[String, ru.FieldMirror])
+  private case class ReflectData(mirror: ru.Mirror, itemType: ru.Type, vars: Map[String, ru.FieldMirror])
+  private var reflectCache = Map[Class[_], ReflectData]()
 
-  var reflectCache = Map[Class[_], ReflectData]()
-
-  private def cacheReflectData(item: Any): ReflectData = {
-    val itemClass = item.getClass
-    if (!reflectCache.contains(itemClass)) {
-      val mirror = ru.runtimeMirror(itemClass.getClassLoader)
-
-      val reflectItem = mirror.reflect(item)
-      val reflectItemClass = reflectItem.symbol.asClass
-
-      val vars = reflectItemClass.info.members
-        .filter(_.isTerm)
-        .map(_.asTerm)
-        .filter(m => m.isVal || m.isVar)
-        .map(field => field.getter.name.toString -> reflectItem.reflectField(field))
-        .toMap
-
-      reflectCache += (itemClass -> ReflectData(mirror, reflectItemClass.typeSignature, vars))
-    }
-    reflectCache(itemClass)
-  }
-
-  private def toJsonValue(field: Any): JsonApiValue = {
-    field match {
-      case value: String => JsonApiString(value)
-      case value: BigDecimal => JsonApiNumber(value)
-      case value: Boolean => JsonApiBoolean(value)
-      case value: Int => JsonApiNumber(value)
-      case value: Long => JsonApiNumber(value)
-      case value: Double => JsonApiNumber(value)
-      case value: Temporal => JsonApiString(value.toString)
-      case value: ViewValue => JsonApiString(value.toString)
-      case values: Seq[_] => JsonApiArray(values.map(value => toJsonValue(value)))
-      case value: AnyRef => JsonApiObject(toJsonObject(value))
-      case _ => throw ParsingException("Unhandled value " + field.toString + " while convert to view item")
-    }
-  }
-
-  case class FieldDesc(isOption: Boolean, isSeq: Boolean, fieldMirror: ru.FieldMirror)
-  case class DataContainer(attributes: scala.collection.mutable.Map[String, JsonApiValue] = scala.collection.mutable.Map[String, JsonApiValue](),
-                           relationships: scala.collection.mutable.Map[String, Relationship] = scala.collection.mutable.Map[String, Relationship]())
+  private case class FieldDesc(isOption: Boolean, isSeq: Boolean, fieldMirror: ru.FieldMirror)
+  private case class DataContainer(attributes: scala.collection.mutable.Map[String, JsonApiValue] = scala.collection.mutable.Map[String, JsonApiValue](),
+                                   relationships: scala.collection.mutable.Map[String, Relationship] = scala.collection.mutable.Map[String, Relationship]())
 
   def write[T <: ViewItem](item: T): Data =
   {
@@ -83,7 +46,7 @@ class ViewWriter(val linkDefiner: LinkDefiner) extends ViewMapper {
       Some(container.relationships.toMap))
   }
 
-  def writeField(isOption: Boolean, fieldType: ru.Type, fieldName: String, value: Any, container: DataContainer): Unit = {
+  private def writeField(isOption: Boolean, fieldType: ru.Type, fieldName: String, value: Any, container: DataContainer): Unit = {
     fieldType match {
       case f if f <:< ViewMappingInfo.SeqType && f.typeArgs.head <:< ViewMappingInfo.ViewLinkType =>
         container.relationships.put(fieldName, writeSeqRelationship(f.typeArgs.head, value.asInstanceOf[Seq[ViewLink[_ <: ViewItem]]]))
@@ -94,15 +57,15 @@ class ViewWriter(val linkDefiner: LinkDefiner) extends ViewMapper {
     }
   }
 
-  def writeSeqRelationship(linkedItemType: ru.Type, relationships: Seq[ViewLink[_ <: ViewItem]]): Relationship = {
+  private def writeSeqRelationship(linkedItemType: ru.Type, relationships: Seq[ViewLink[_ <: ViewItem]]): Relationship = {
     Relationship(linkDefiner.getLink(linkedItemType), relationships.map(_.key))
   }
 
-  def writeOneRelationship(linkedItemType: ru.Type, relationship: ViewLink[_ <: ViewItem]): Relationship = {
+  private def writeOneRelationship(linkedItemType: ru.Type, relationship: ViewLink[_ <: ViewItem]): Relationship = {
     Relationship(linkDefiner.getLink(linkedItemType), relationship.key :: Nil)
   }
 
-  protected def toJsonObject(item: Any): Map[String, JsonApiValue] = {
+  private def toJsonObject(item: Any): Map[String, JsonApiValue] = {
     val reflectData = cacheReflectData(item)
     reflectData.vars.flatMap { case (name, field) =>
       val fieldValue = field.bind(item).get
@@ -118,9 +81,39 @@ class ViewWriter(val linkDefiner: LinkDefiner) extends ViewMapper {
     }
   }
 
-  override def toData[T <: ViewItem](item: T)(implicit classTag: ClassTag[T]): Data = {
-    Data(item.key, Some(toJsonObject(item)))
+  private def toJsonValue(field: Any): JsonApiValue = {
+    field match {
+      case value: String => JsonApiString(value)
+      case value: BigDecimal => JsonApiNumber(value)
+      case value: Boolean => JsonApiBoolean(value)
+      case value: Int => JsonApiNumber(value)
+      case value: Long => JsonApiNumber(value)
+      case value: Double => JsonApiNumber(value)
+      case value: Temporal => JsonApiString(value.toString)
+      case value: ViewValue => JsonApiString(value.toString)
+      case values: Seq[_] => JsonApiArray(values.map(value => toJsonValue(value)))
+      case value: AnyRef => JsonApiObject(toJsonObject(value))
+      case _ => throw ParsingException("Unhandled value " + field.toString + " while convert to view item")
+    }
   }
 
-  //override def fromData[T <: ViewItem](data: Data)(implicit classTag: ClassTag[T]): T = ???
+  private def cacheReflectData(item: Any): ReflectData = {
+    val itemClass = item.getClass
+    if (!reflectCache.contains(itemClass)) {
+      val mirror = ru.runtimeMirror(itemClass.getClassLoader)
+
+      val reflectItem = mirror.reflect(item)
+      val reflectItemClass = reflectItem.symbol.asClass
+
+      val vars = reflectItemClass.info.members
+        .filter(_.isTerm)
+        .map(_.asTerm)
+        .filter(m => m.isVal || m.isVar)
+        .map(field => field.getter.name.toString -> reflectItem.reflectField(field))
+        .toMap
+
+      reflectCache += (itemClass -> ReflectData(mirror, reflectItemClass.typeSignature, vars))
+    }
+    reflectCache(itemClass)
+  }
 }
