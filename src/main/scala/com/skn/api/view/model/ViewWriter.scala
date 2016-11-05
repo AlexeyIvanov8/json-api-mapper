@@ -71,10 +71,10 @@ class ViewWriter(val linkDefiner: LinkDefiner) extends ViewMapper {
         // skip system values
         case d if fieldType <:< ViewMappingInfo.ObjectKeyType => None
         case d if fieldType <:< ViewMappingInfo.OptionType => value match {
-          case Some(r) => Some(writeField(fieldType, name, r, container))
+          case Some(r) => Some(writeField(isOption = true, fieldType.typeArgs.head, name, r, container))
           case None => None
         }
-        case value: Any => writeField(fieldType, name, value, container)
+        case value: Any => writeField(isOption = false, fieldType, name, value, container)
       }
     }
     Data(item.key,
@@ -83,7 +83,7 @@ class ViewWriter(val linkDefiner: LinkDefiner) extends ViewMapper {
       Some(container.relationships.toMap))
   }
 
-  def writeField(fieldType: ru.Type, fieldName: String, value: Any, container: DataContainer): Any = {
+  def writeField(isOption: Boolean, fieldType: ru.Type, fieldName: String, value: Any, container: DataContainer): Unit = {
     fieldType match {
       case f if f <:< ViewMappingInfo.SeqType && f.typeArgs.head <:< ViewMappingInfo.ViewLinkType =>
         container.relationships.put(fieldName, writeSeqRelationship(f.typeArgs.head, value.asInstanceOf[Seq[ViewLink[_ <: ViewItem]]]))

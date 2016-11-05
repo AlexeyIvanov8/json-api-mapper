@@ -10,6 +10,8 @@ import play.api.libs.json.Json
 import com.skn.api.view.jsonapi.JsonApiPlayFormat.dataFormat
 import com.skn.api.view.jsonapi.JsonApiPlayModel.ObjectKey
 
+import scala.collection.immutable.Stream.Empty
+
 class ViewModelTest extends BaseUnitTest
 {
 
@@ -42,5 +44,9 @@ class ViewModelTest extends BaseUnitTest
     val deCustom = deserialized.custom.get
     deCustom.name should be (view.custom.get.name)
     deCustom.prices shouldEqual view.custom.get.prices
+    deserialized.link shouldBe defined
+    val deLink = deserialized.link.get
+    deLink.key.`type` should be (view.link.get.key.`type`)
+    deLink.key.id.get should be (view.link.get.key.id.get)
   }
 }
