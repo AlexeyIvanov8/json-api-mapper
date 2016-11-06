@@ -6,9 +6,7 @@ import com.skn.api.view.exception.ParsingException
 import com.skn.api.view.jsonapi.JsonApiPlayModel.{Data, Link, ObjectKey, Relationship}
 import com.skn.api.view.jsonapi.JsonApiValueModel.{JsonApiArray, JsonApiBoolean, JsonApiNumber, JsonApiObject, JsonApiString, JsonApiValue}
 import org.slf4j.LoggerFactory
-import sun.reflect.generics.tree.FieldTypeSignature
 
-import scala.reflect.ClassTag
 import scala.reflect.runtime.{universe => ru}
 /**
   * Created by Sergey on 30.10.2016.
@@ -30,12 +28,14 @@ class ViewWriter(val linkDefiner: LinkDefiner) {
   private case class ReflectData(mirror: ru.Mirror, itemType: ru.Type, vars: Map[String, FieldDesc])
   private var reflectCache = Map[Class[_], ReflectData]()
 
-  private case class DataContainer(attributes: scala.collection.mutable.Map[String, JsonApiValue] = scala.collection.mutable.Map[String, JsonApiValue](),
-                                   relationships: scala.collection.mutable.Map[String, Relationship] = scala.collection.mutable.Map[String, Relationship]())
+  private class DataContainer {
+    var attributes: Map[String, JsonApiValue] = Map[String, JsonApiValue]()
+    var relationships: Map[String, Relationship] = Map[String, Relationship]()
+  }
 
   def write[T <: ViewItem](item: T): Data =
   {
-    val container = DataContainer()
+    val container = new DataContainer()
     val reflectData = cacheReflectData(item)
     reflectData.vars.map { case (name, desc) =>
       val value = desc.fieldMirror.bind(item).get
@@ -50,19 +50,19 @@ class ViewWriter(val linkDefiner: LinkDefiner) {
       }
     }
     Data(item.key,
-      Some(container.attributes.toMap),
+      Some(container.attributes),
       Some(linkDefiner.getLink(reflectData.itemType)),
-      Some(container.relationships.toMap))
+      Some(container.relationships))
   }
 
   private def writeField(desc: FieldDesc, fieldType: ru.Type, fieldName: String, value: Any, container: DataContainer): Unit = {
     desc match {
       case d: LinkFieldDesc if d.isSeq =>
-        container.relationships.put(fieldName, writeSeqRelationship(fieldType.typeArgs.head, value.asInstanceOf[Seq[ViewLink[_ <: ViewItem]]]))
+        container.relationships += (fieldName -> writeSeqRelationship(fieldType.typeArgs.head, value.asInstanceOf[Seq[ViewLink[_ <: ViewItem]]]))
       case d: LinkFieldDesc =>
-        container.relationships.put(fieldName, writeOneRelationship(fieldType, value.asInstanceOf[ViewLink[_ <: ViewItem]]))
+        container.relationships += (fieldName -> writeOneRelationship(fieldType, value.asInstanceOf[ViewLink[_ <: ViewItem]]))
       case d: AttributeFieldDesc =>
-        container.attributes.put(fieldName, toJsonValue(value))
+        container.attributes += (fieldName -> toJsonValue(value))
     }
   }
 

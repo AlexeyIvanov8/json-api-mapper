@@ -9,15 +9,15 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.skn.api.view.jsonapi.JsonApiMapper
 import com.skn.api.view.jsonapi.JsonApiPlayModel.{Data, ObjectKey, RootObject}
-import com.skn.api.view.model.{SimpleLinkDefiner, ViewLink, ViewWriter}
+import com.skn.api.view.model._
 import com.skn.common.view.{CustomObject, Home, TestLink, TestView}
 import com.skn.common.view.model._
 import com.skn.measurement.view.JsonApiFormatMeasurement.BenchmarkState
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 
 import scala.reflect.runtime.{universe => ru}
 import scala.util.Random
-
+import com.skn.api.view.jsonapi.JsonApiPlayFormat._
 /**
   *
   * Created by Sergey on 01.10.2016.
@@ -35,49 +35,49 @@ class JsonApiFormatMeasurement //extends BaseUnitTest
   @Threads(1)
   //@Benchmark
   def create(state: BenchmarkState): TestView = {
-    TestView("Js string value" + state.random.nextLong(), state.random.nextLong(),
-      new Home("TH"), Some(0),
-      Some(new ViewLink(TestLink(ObjectKey("link", 1L), Some(LocalDateTime.now())))),
-      Some(CustomObject(Some("customName"), state.random.nextInt(), Some(3.4 :: 4.5 :: Nil))))
-  }
-
-  def reflect(state: BenchmarkState): Data = {
-    //val test = Some(List() ++ 3.4 ++ 4.5 ++ 23.6)//Person("test", 23, None)
-
-    val item = TestView("Js string value" + state.random.nextLong().toString,
+    TestView("Js string value" + state.random.nextLong().toString,
       state.random.nextLong(), new Home("TH"), Some(0L),
       Some(new ViewLink(TestLink(ObjectKey("link", 1L), Some(LocalDateTime.now())))),
       Some(CustomObject(Some("customName"), 34423, Some(List(3.4, 4.5)))))
-    state.viewMapper.write(item)
-    /*val itemClass = reflectItem.symbol.asClass
-    vamembers = itemClass.info.members
-    members.size*/
+  }
+
+  def reflect(state: BenchmarkState): Data = {
+    val item = create(state)
+    state.viewWriter.write(item)
   }
 
   @Threads(1)
-  @Benchmark
+  //@Benchmark
   def reflect1(state: BenchmarkState): Data = {
     reflect(state)
   }
 
   @Threads(3)
-  @Benchmark
-  def reflect4(state: BenchmarkState): Data = {
+  //@Benchmark
+  def reflect3(state: BenchmarkState): Data = {
     reflect(state)
-    //val vars = itemClass.info.members.filter(_.isTerm).map(_.asTerm).filter(m => m.isVal || m.isVar)
   }
 
-  @Threads(20)
-  //@Benchmark
-  def simpleTest(state: BenchmarkState): Unit = {
-    Thread.sleep(100L)
-    /*val one = 10L
-    val two = 30L
-    var res = 1L
-    for(i <- 0L to 1000000L)
-      res *= one * two * i
-    res*/
-  }
+  @Threads(1)
+  @Threads(3)
+  @Benchmark
+  def readTest1(state: BenchmarkState): ViewItem =
+    state.viewReader.read(state.testData)
+
+  /*@Threads(1)
+  @Benchmark
+  def jsView1(state: BenchmarkState): JsValue =
+    state.playJson.toJson(state.viewWriter.write(create(state)))(dataFormat)
+
+  @Threads(3)
+  @Benchmark
+  def jsView3(state: BenchmarkState): JsValue =
+    state.playJson.toJson(state.viewWriter.write(create(state)))(dataFormat)
+
+  @Threads(3)
+  @Benchmark
+  def jackson(state: BenchmarkState): String =
+    state.jacksonMapper.writeValueAsString(state.viewWriter.write(create(state)))*/
 
   @GroupThreads(4)
   //@Benchmark
@@ -123,13 +123,20 @@ object JsonApiFormatMeasurement {
   @State(Scope.Thread)
   class BenchmarkState {
     val mapper = new JsonApiMapper
-    val viewMapper = new ViewWriter(new SimpleLinkDefiner)
+    val viewWriter = new ViewWriter(new SimpleLinkDefiner)
+    val viewReader = new ViewReader
     val personFormat = PersonFormat.format
     val houseFormat = HouseFormat.format
     val random = new Random(System.nanoTime())
     val jacksonMapper = new ObjectMapper()
+    val playJson = Json
     //val mirror = ru.runtimeMirror(TestView.getClass.getClassLoader)
     jacksonMapper.registerModule(DefaultScalaModule)
+
+    val testData = viewWriter.write(TestView("Js string value" + random.nextLong().toString,
+      random.nextLong(), new Home("TH"), Some(0L),
+      Some(new ViewLink(TestLink(ObjectKey("link", 1L), Some(LocalDateTime.now())))),
+      Some(CustomObject(Some("customName"), 34423, Some(List(3.4, 4.5))))))
   }
 
 }
