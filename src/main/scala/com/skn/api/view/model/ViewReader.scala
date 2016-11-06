@@ -22,7 +22,12 @@ class ViewReader {
     * @param params - variables, that may be fill after
     * @param constructorParams - constructor arguments
     */
-  private case class CreateObjectDescription(mirror: ru.Mirror, constructorParams: Seq[ru.TermSymbol], params: Seq[ru.TermSymbol])
+  private case class CreateObjectDescription(mirror: ru.Mirror,
+                                             constructorMirror: ru.MethodMirror,
+                                             constructorParams: Seq[ru.TermSymbol],
+                                             params: Seq[ru.TermSymbol]) {
+    var setters = Map[ru.MethodSymbol, ru.MethodMirror]()
+  }
   private var createDescriptionsCache = Map[ru.Type, CreateObjectDescription]()
 
 
@@ -33,7 +38,7 @@ class ViewReader {
 
     val constructorArgs = readFields(createObjectDescription.mirror, createObjectDescription.constructorParams, data)
     val args = readFields(createObjectDescription.mirror, createObjectDescription.params, data)
-    constructObject(createObjectDescription.mirror, objectType, constructorArgs.map { case (k, v) => v }, args.toMap).asInstanceOf[V]
+    constructObject(createObjectDescription, objectType, constructorArgs.map { case (k, v) => v }, args.toMap).asInstanceOf[V]
   }
 
   private def readFields(mirror: ru.Mirror, fieldMirrors: Seq[ru.TermSymbol], data: Data): Seq[(ru.TermSymbol, Any)] = {
@@ -154,7 +159,7 @@ class ViewReader {
             jsArray.map(value => fromJsValue(seqType, value, mirror))
 
           case _ =>
-            logger.info("Field "+fieldType.typeSymbol.name+" detect as jsObject")
+            //logger.info("Field "+fieldType.typeSymbol.name+" detect as jsObject")
             val jsObject = jsValue.as[Map[String, JsonApiValue]]
             createObject(mirror, fieldType, jsObject)
         }
@@ -165,15 +170,20 @@ class ViewReader {
       result
   }
 
-  private def constructObject(mirror: ru.Mirror,
+  private def constructObject(desc: CreateObjectDescription,
                               objectType: ru.Type,
                               constructorArgs: Seq[Any],
                               variables: Map[ru.TermSymbol, Any]): Any = {
-    val constructorMirror =  mirror.reflectClass(objectType.typeSymbol.asClass)
-      .reflectConstructor(objectType.typeSymbol.asClass.primaryConstructor.asMethod)
-    val result = constructorMirror(constructorArgs: _*)
+    val result = desc.constructorMirror(constructorArgs: _*)
     variables.foreach { case (key, value) =>
-      mirror.reflect(result).reflectMethod(key.setter.asMethod).apply(value) }
+      val setter = key.setter.asMethod
+      if (!desc.setters.contains(setter)) {
+        desc.setters += setter -> desc.mirror.reflect(result).reflectMethod(key.setter.asMethod)
+      }
+      desc.setters(setter).apply(value)
+      //mirror.reflect(result).reflectMethod(key.setter.asMethod).apply(value)
+    }
+
     result
   }
 
@@ -184,23 +194,14 @@ class ViewReader {
     val variables = desc.params.map(variable =>
       variable -> fromJsValue(variable.typeSignature, jsObject(variable.name.toString), mirror) )
       .toMap
-    constructObject(mirror, objectType, constructorArgs, variables)
+    constructObject(desc, objectType, constructorArgs, variables)
   }
 
   // caching methods
   private def cacheCreateDescription(objectType: ru.Type, classTag: ClassTag[_]): CreateObjectDescription = {
     if (!createDescriptionsCache.contains(objectType)) {
       val mirror = ru.runtimeMirror(classTag.runtimeClass.getClassLoader)
-      val constructor = objectType.typeSymbol.asClass.primaryConstructor.asMethod
-      var constructorParams = List[ru.TermSymbol]()
-      if (constructor.paramLists.nonEmpty)
-        constructorParams = constructor.paramLists.head.map(param => param.asTerm)
-      val params = objectType.decls
-        .filter(_.isTerm)
-        .map(_.asTerm)
-        .filter(_.isVar).filter(variable => constructorParams.exists(arg => arg.equals(variable)))
-        .toSeq
-      createDescriptionsCache += objectType -> CreateObjectDescription(mirror, constructorParams, params)
+      cacheCreateDescription(mirror, objectType)
     }
     createDescriptionsCache(objectType)
   }
@@ -217,15 +218,17 @@ class ViewReader {
   private def cacheCreateDescription(mirror: ru.Mirror, objectType: ru.Type) = {
     if (!createDescriptionsCache.contains(objectType)) {
       val constructor = objectType.typeSymbol.asClass.primaryConstructor.asMethod
-      var constructorArgs = List[ru.TermSymbol]()
+      var constructorParams = List[ru.TermSymbol]()
       if (constructor.paramLists.nonEmpty)
-        constructorArgs = constructor.paramLists.head.map(param => param.asTerm)
-      val vars = objectType.decls
+        constructorParams = constructor.paramLists.head.map(param => param.asTerm)
+      val params = objectType.decls
         .filter(_.isTerm)
         .map(_.asTerm)
-        .filter(_.isVar).filter(variable => constructorArgs.exists(arg => arg.equals(variable)))
+        .filter(_.isVar).filter(variable => constructorParams.exists(arg => arg.equals(variable)))
         .toSeq
-      createDescriptionsCache += objectType -> CreateObjectDescription(mirror, constructorArgs, vars)
+      val constructorMirror = mirror.reflectClass(objectType.typeSymbol.asClass)
+        .reflectConstructor(constructor)
+      createDescriptionsCache += objectType -> CreateObjectDescription(mirror, constructorMirror, constructorParams, params)
     }
     createDescriptionsCache(objectType)
   }

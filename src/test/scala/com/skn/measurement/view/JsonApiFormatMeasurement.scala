@@ -59,10 +59,14 @@ class JsonApiFormatMeasurement //extends BaseUnitTest
   }
 
   @Threads(1)
-  @Threads(3)
   @Benchmark
   def readTest1(state: BenchmarkState): ViewItem =
-    state.viewReader.read(state.testData)
+    state.viewReader.read[TestView](state.testData)
+
+  @Threads(3)
+  @Benchmark
+  def readTest3(state: BenchmarkState): ViewItem =
+    state.viewReader.read[TestView](state.testData)
 
   /*@Threads(1)
   @Benchmark
