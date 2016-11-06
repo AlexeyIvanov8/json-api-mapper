@@ -1,0 +1,17 @@
+package com.skn.api.view.model.data
+
+import scala.reflect.runtime.{ universe => ru}
+
+/**
+  * Created by Sergey on 06.11.2016.
+  */
+sealed trait FieldDesc {
+  val isOption: Boolean
+  val isSeq: Boolean
+  val fieldMirror: ru.FieldMirror
+  val fieldType: ru.Type
+}
+
+case class LinkFieldDesc(isOption: Boolean, isSeq: Boolean, fieldMirror: ru.FieldMirror, fieldType: ru.Type) extends FieldDesc
+case class AttributeFieldDesc(isOption: Boolean, isSeq: Boolean, fieldMirror: ru.FieldMirror, fieldType: ru.Type) extends FieldDesc
+

@@ -5,6 +5,7 @@ import java.time.temporal.Temporal
 import com.skn.api.view.exception.ParsingException
 import com.skn.api.view.jsonapi.JsonApiPlayModel.{Data, Link, ObjectKey, Relationship}
 import com.skn.api.view.jsonapi.JsonApiValueModel.{JsonApiArray, JsonApiBoolean, JsonApiNumber, JsonApiObject, JsonApiString, JsonApiValue}
+import com.skn.api.view.model.data.{AttributeFieldDesc, FieldDesc, LinkFieldDesc}
 import org.slf4j.LoggerFactory
 
 import scala.reflect.runtime.{universe => ru}
@@ -15,16 +16,6 @@ class ViewWriter(val linkDefiner: LinkDefiner) {
   private val logger = LoggerFactory.getLogger(classOf[ViewWriter])
 
   // cases definitions
-  private trait FieldDesc {
-    val isOption: Boolean
-    val isSeq: Boolean
-    val fieldMirror: ru.FieldMirror
-    val fieldType: ru.Type
-  }
-
-  private case class LinkFieldDesc(isOption: Boolean, isSeq: Boolean, fieldMirror: ru.FieldMirror, fieldType: ru.Type) extends FieldDesc
-  private case class AttributeFieldDesc(isOption: Boolean, isSeq: Boolean, fieldMirror: ru.FieldMirror, fieldType: ru.Type) extends FieldDesc
-
   private case class ReflectData(mirror: ru.Mirror, itemType: ru.Type, vars: Map[String, FieldDesc])
   private var reflectCache = Map[Class[_], ReflectData]()
 
@@ -118,20 +109,7 @@ class ViewWriter(val linkDefiner: LinkDefiner) {
         .filter(_.isTerm)
         .map(_.asTerm)
         .filter(m => m.isVal || m.isVar)
-        .map { field => field.getter.name.toString -> {
-          var aType = field.typeSignature
-          val isOption = aType <:< ViewMappingInfo.OptionType
-          if (isOption)
-            aType = aType.typeArgs.head
-          val isSeq = aType <:< ViewMappingInfo.SeqType
-          if (isSeq)
-            aType = aType.typeArgs.head
-          aType match {
-            case t if t <:< ViewMappingInfo.ViewLinkType => LinkFieldDesc(
-              isOption = isOption, isSeq = isSeq, reflectItem.reflectField(field), field.typeSignature)
-            case _ => AttributeFieldDesc(isOption, isSeq, reflectItem.reflectField(field), field.typeSignature)
-          }
-        }}
+        .map { field => field.getter.name.toString -> ViewMappingInfo.getFieldDesc(field, reflectItem.reflectField(field)) }
         .toMap
 
       reflectCache += (itemClass -> ReflectData(mirror, reflectItemClass.typeSignature, vars))
