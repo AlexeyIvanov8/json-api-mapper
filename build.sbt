@@ -1,11 +1,15 @@
 
 import pl.project13.scala.sbt.JmhPlugin
 
+//val scalaVersionString = "2.12.0-SNAPSHOT"
 val scalaVersionString = "2.12.0-SNAPSHOT"
+
 // for super safe compiler plugin
 //resolvers += "Artima Maven Repository" at "http://repo.artima.com/releases"
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
+
+ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) }
 
 lazy val commonSettings = Seq(
 	organization := "com.skn",
@@ -22,17 +26,14 @@ lazy val root = (project in file("."))
 	.settings(commonSettings:_*)
 	
 libraryDependencies ++= Seq(
-	// https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient  for http status enumeration
-	"org.apache.httpcomponents" % "httpclient" % "4.5.2",
+  "org.apache.httpcomponents" % "httpclient" % "4.5.2",
 	"com.typesafe.play" % "play-json_2.12.0-RC1" % "2.6.0-SNAPSHOT",
-	//"org.scalatest" % "scalatest_2.11" % "3.0.0" % "test",
 	"ch.qos.logback" % "logback-classic" % "1.1.3",
 	"com.typesafe.scala-logging" % "scala-logging_2.11" % "3.1.0",
   "com.fasterxml.jackson.module" % "jackson-module-scala_2.12.0-RC1" % "2.8.3",
-// https://mvnrepository.com/artifact/org.scalamacros/quasiquotes_2.10
-  //"org.scalamacros" % "quasiquotes_2.10" % "2.1.0",
   "org.scalatest" % "scalatest_2.12.0-RC1" % "3.0.0",
-	"org.scala-lang" % "scala-reflect" % scalaVersionString
+	"org.scala-lang" % "scala-reflect" % scalaVersionString,
+	"org.scala-lang" % "scala-library" % scalaVersionString
 )
 
 logBuffered in Test := false

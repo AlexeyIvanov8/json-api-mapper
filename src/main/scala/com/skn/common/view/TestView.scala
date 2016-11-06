@@ -1,4 +1,4 @@
-package com.skn.common.view.model.view
+package com.skn.common.view
 
 import java.time.LocalDateTime
 

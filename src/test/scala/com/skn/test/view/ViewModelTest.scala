@@ -4,8 +4,7 @@ import java.time.LocalDateTime
 import java.util.concurrent._
 
 import com.skn.api.view.model.{SimpleLinkDefiner, ViewLink, ViewReader, ViewWriter}
-import com.skn.common.view.BaseUnitTest
-import com.skn.common.view.model.view.{CustomObject, Home, TestLink, TestView}
+import com.skn.common.view._
 import play.api.libs.json.Json
 import com.skn.api.view.jsonapi.JsonApiPlayFormat.dataFormat
 import com.skn.api.view.jsonapi.JsonApiPlayModel.ObjectKey

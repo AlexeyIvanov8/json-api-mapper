@@ -1,9 +1,11 @@
-package com.skn.api
+package com.skn
 
+import java.time.LocalDateTime
 import java.util.concurrent._
 
-import com.skn.api.view.jsonapi.JsonApiPlayModel.{Link, ObjectKey}
-import com.skn.api.view.model.{LinkDefiner, SimpleLinkDefiner, ViewItem, ViewWriter}
+import com.skn.api.view.jsonapi.JsonApiPlayModel.ObjectKey
+import com.skn.api.view.model._
+import com.skn.common.view.{CustomObject, Home, TestLink, TestView}
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
@@ -11,9 +13,6 @@ import org.slf4j.LoggerFactory
   *
   * Created by Sergey on 18.10.2016.
   */
-case class CustomObject(name: Option[String], order: Int, prices: Option[Seq[Double]])
-case class TestView(str: String, num: BigDecimal, id: Option[Long], custom: Option[CustomObject]) extends ViewItem { val key = ObjectKey("testType", id) }
-
 object TestApp extends App {
 
   protected val logger = Logger(LoggerFactory.getLogger("App logger"))
@@ -27,9 +26,14 @@ object TestApp extends App {
           var count = 0L
           val viewMapper = new ViewWriter(new SimpleLinkDefiner)
           for (j <- 0 to batch) yield {
-            val item = TestView("Js string value", 998, Some(1),
+            val item = TestView("t", 998,
+              new Home("TH"),
+              Some(1),
+              Some(new ViewLink(TestLink(ObjectKey("testLink", 1L), Some(LocalDateTime.now())))),
               Some(CustomObject(Some("customName"), 94, Some(3.4 :: 4.5 :: Nil))))
-            val data = viewMapper.toData(item)
+            /*val item = TestView("Js string value", 998, Some(1),
+              Some(CustomObject(Some("customName"), 94, Some(3.4 :: 4.5 :: Nil))))*/
+            val data = viewMapper.write(item)
             count += data.key.id.getOrElse(0L)
           }
           count
@@ -45,7 +49,7 @@ object TestApp extends App {
   override def main(args: Array[String]): Unit =
   {
     val executorService = new ThreadPoolExecutor(8, 8, 1000, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable]())
-    bench(executorService, 1, 16, 100000)
+    //bench(executorService, 1, 16, 100000)
     System.out.println("\n\n")
     bench(executorService, 4, 16, 10000000)
   }

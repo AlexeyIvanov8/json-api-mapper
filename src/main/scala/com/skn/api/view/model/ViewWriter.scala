@@ -6,20 +6,30 @@ import com.skn.api.view.exception.ParsingException
 import com.skn.api.view.jsonapi.JsonApiPlayModel.{Data, Link, ObjectKey, Relationship}
 import com.skn.api.view.jsonapi.JsonApiValueModel.{JsonApiArray, JsonApiBoolean, JsonApiNumber, JsonApiObject, JsonApiString, JsonApiValue}
 import org.slf4j.LoggerFactory
+import sun.reflect.generics.tree.FieldTypeSignature
 
 import scala.reflect.ClassTag
 import scala.reflect.runtime.{universe => ru}
 /**
   * Created by Sergey on 30.10.2016.
   */
-class ViewWriter(val linkDefiner: LinkDefiner)  {
+class ViewWriter(val linkDefiner: LinkDefiner) {
   private val logger = LoggerFactory.getLogger(classOf[ViewWriter])
 
   // cases definitions
-  private case class ReflectData(mirror: ru.Mirror, itemType: ru.Type, vars: Map[String, ru.FieldMirror])
+  private trait FieldDesc {
+    val isOption: Boolean
+    val isSeq: Boolean
+    val fieldMirror: ru.FieldMirror
+    val fieldType: ru.Type
+  }
+
+  private case class LinkFieldDesc(isOption: Boolean, isSeq: Boolean, fieldMirror: ru.FieldMirror, fieldType: ru.Type) extends FieldDesc
+  private case class AttributeFieldDesc(isOption: Boolean, isSeq: Boolean, fieldMirror: ru.FieldMirror, fieldType: ru.Type) extends FieldDesc
+
+  private case class ReflectData(mirror: ru.Mirror, itemType: ru.Type, vars: Map[String, FieldDesc])
   private var reflectCache = Map[Class[_], ReflectData]()
 
-  private case class FieldDesc(isOption: Boolean, isSeq: Boolean, fieldMirror: ru.FieldMirror)
   private case class DataContainer(attributes: scala.collection.mutable.Map[String, JsonApiValue] = scala.collection.mutable.Map[String, JsonApiValue](),
                                    relationships: scala.collection.mutable.Map[String, Relationship] = scala.collection.mutable.Map[String, Relationship]())
 
@@ -28,16 +38,15 @@ class ViewWriter(val linkDefiner: LinkDefiner)  {
     val container = DataContainer()
     val reflectData = cacheReflectData(item)
     reflectData.vars.map { case (name, desc) =>
-      val fieldType = desc.symbol.typeSignature
-      val value = desc.bind(item).get
+      val value = desc.fieldMirror.bind(item).get
       value match {
         // skip system values
-        case d if fieldType <:< ViewMappingInfo.ObjectKeyType => None
-        case d if fieldType <:< ViewMappingInfo.OptionType => value match {
-          case Some(r) => Some(writeField(isOption = true, fieldType.typeArgs.head, name, r, container))
+        case ObjectKey => None
+        case d if desc.isOption => value match {
+          case Some(r) => Some(writeField(desc, desc.fieldType.typeArgs.head, name, r, container))
           case None => None
         }
-        case value: Any => writeField(isOption = false, fieldType, name, value, container)
+        case value: Any => writeField(desc, desc.fieldType, name, value, container)
       }
     }
     Data(item.key,
@@ -46,13 +55,13 @@ class ViewWriter(val linkDefiner: LinkDefiner)  {
       Some(container.relationships.toMap))
   }
 
-  private def writeField(isOption: Boolean, fieldType: ru.Type, fieldName: String, value: Any, container: DataContainer): Unit = {
-    fieldType match {
-      case f if f <:< ViewMappingInfo.SeqType && f.typeArgs.head <:< ViewMappingInfo.ViewLinkType =>
-        container.relationships.put(fieldName, writeSeqRelationship(f.typeArgs.head, value.asInstanceOf[Seq[ViewLink[_ <: ViewItem]]]))
-      case f if f <:< ViewMappingInfo.ViewLinkType =>
+  private def writeField(desc: FieldDesc, fieldType: ru.Type, fieldName: String, value: Any, container: DataContainer): Unit = {
+    desc match {
+      case d: LinkFieldDesc if d.isSeq =>
+        container.relationships.put(fieldName, writeSeqRelationship(fieldType.typeArgs.head, value.asInstanceOf[Seq[ViewLink[_ <: ViewItem]]]))
+      case d: LinkFieldDesc =>
         container.relationships.put(fieldName, writeOneRelationship(fieldType, value.asInstanceOf[ViewLink[_ <: ViewItem]]))
-      case _ =>
+      case d: AttributeFieldDesc =>
         container.attributes.put(fieldName, toJsonValue(value))
     }
   }
@@ -68,7 +77,7 @@ class ViewWriter(val linkDefiner: LinkDefiner)  {
   private def toJsonObject(item: Any): Map[String, JsonApiValue] = {
     val reflectData = cacheReflectData(item)
     reflectData.vars.flatMap { case (name, field) =>
-      val fieldValue = field.bind(item).get
+      val fieldValue = field.fieldMirror.bind(item).get
       fieldValue match {
         // skip system values
         case value: ObjectKey => None
@@ -109,7 +118,20 @@ class ViewWriter(val linkDefiner: LinkDefiner)  {
         .filter(_.isTerm)
         .map(_.asTerm)
         .filter(m => m.isVal || m.isVar)
-        .map(field => field.getter.name.toString -> reflectItem.reflectField(field))
+        .map { field => field.getter.name.toString -> {
+          var aType = field.typeSignature
+          val isOption = aType <:< ViewMappingInfo.OptionType
+          if (isOption)
+            aType = aType.typeArgs.head
+          val isSeq = aType <:< ViewMappingInfo.SeqType
+          if (isSeq)
+            aType = aType.typeArgs.head
+          aType match {
+            case t if t <:< ViewMappingInfo.ViewLinkType => LinkFieldDesc(
+              isOption = isOption, isSeq = isSeq, reflectItem.reflectField(field), field.typeSignature)
+            case _ => AttributeFieldDesc(isOption, isSeq, reflectItem.reflectField(field), field.typeSignature)
+          }
+        }}
         .toMap
 
       reflectCache += (itemClass -> ReflectData(mirror, reflectItemClass.typeSignature, vars))

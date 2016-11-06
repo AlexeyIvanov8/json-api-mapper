@@ -8,10 +8,10 @@ import java.util.concurrent.TimeUnit
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.skn.api.view.jsonapi.JsonApiMapper
-import com.skn.api.view.jsonapi.JsonApiPlayModel.{ObjectKey, RootObject}
+import com.skn.api.view.jsonapi.JsonApiPlayModel.{Data, ObjectKey, RootObject}
 import com.skn.api.view.model.{SimpleLinkDefiner, ViewLink, ViewWriter}
+import com.skn.common.view.{CustomObject, Home, TestLink, TestView}
 import com.skn.common.view.model._
-import com.skn.common.view.model.view.{CustomObject, Home, TestLink, TestView}
 import com.skn.measurement.view.JsonApiFormatMeasurement.BenchmarkState
 import play.api.libs.json.Json
 
@@ -41,14 +41,14 @@ class JsonApiFormatMeasurement //extends BaseUnitTest
       Some(CustomObject(Some("customName"), state.random.nextInt(), Some(3.4 :: 4.5 :: Nil))))
   }
 
-  def reflect(state: BenchmarkState): Unit = {
+  def reflect(state: BenchmarkState): Data = {
     //val test = Some(List() ++ 3.4 ++ 4.5 ++ 23.6)//Person("test", 23, None)
 
     val item = TestView("Js string value" + state.random.nextLong().toString,
       state.random.nextLong(), new Home("TH"), Some(0L),
       Some(new ViewLink(TestLink(ObjectKey("link", 1L), Some(LocalDateTime.now())))),
       Some(CustomObject(Some("customName"), 34423, Some(List(3.4, 4.5)))))
-    state.viewMapper.toData(item)
+    state.viewMapper.write(item)
     /*val itemClass = reflectItem.symbol.asClass
     vamembers = itemClass.info.members
     members.size*/
@@ -56,13 +56,13 @@ class JsonApiFormatMeasurement //extends BaseUnitTest
 
   @Threads(1)
   @Benchmark
-  def reflect1(state: BenchmarkState): Unit = {
+  def reflect1(state: BenchmarkState): Data = {
     reflect(state)
   }
 
   @Threads(3)
   @Benchmark
-  def reflect4(state: BenchmarkState): Unit = {
+  def reflect4(state: BenchmarkState): Data = {
     reflect(state)
     //val vars = itemClass.info.members.filter(_.isTerm).map(_.asTerm).filter(m => m.isVal || m.isVar)
   }
