@@ -47,14 +47,14 @@ class JsonApiFormatMeasurement //extends BaseUnitTest
   }
 
   @Threads(1)
-  //@Benchmark
-  def reflect1(state: BenchmarkState): Data = {
+  @Benchmark
+  def writeTest1(state: BenchmarkState): Data = {
     reflect(state)
   }
 
   @Threads(3)
-  //@Benchmark
-  def reflect3(state: BenchmarkState): Data = {
+  @Benchmark
+  def writeTest3(state: BenchmarkState): Data = {
     reflect(state)
   }
 

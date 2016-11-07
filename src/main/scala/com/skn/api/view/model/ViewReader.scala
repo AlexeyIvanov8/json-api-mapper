@@ -5,6 +5,7 @@ import java.time.{LocalDate, LocalDateTime}
 import com.skn.api.view.exception.ParsingException
 import com.skn.api.view.jsonapi.JsonApiPlayModel.{Data, ObjectKey, Relationship}
 import com.skn.api.view.jsonapi.JsonApiValueModel.{JsonApiBoolean, JsonApiNumber, JsonApiString, JsonApiValue}
+import com.skn.api.view.model.data.{FieldDesc, LinkFieldDesc}
 import org.slf4j.LoggerFactory
 
 import scala.reflect.ClassTag
@@ -24,8 +25,8 @@ class ViewReader {
     */
   private case class CreateObjectDescription(mirror: ru.Mirror,
                                              constructorMirror: ru.MethodMirror,
-                                             constructorParams: Seq[ru.TermSymbol],
-                                             params: Seq[ru.TermSymbol]) {
+                                             constructorParams: Seq[FieldDesc],
+                                             params: Seq[FieldDesc]) {
     var setters = Map[ru.MethodSymbol, ru.MethodMirror]()
   }
   private var createDescriptionsCache = Map[ru.Type, CreateObjectDescription]()
@@ -41,24 +42,24 @@ class ViewReader {
     constructObject(createObjectDescription, objectType, constructorArgs.map { case (k, v) => v }, args.toMap).asInstanceOf[V]
   }
 
-  private def readFields(mirror: ru.Mirror, fieldMirrors: Seq[ru.TermSymbol], data: Data): Seq[(ru.TermSymbol, Any)] = {
-    fieldMirrors.map { fieldMirror =>
-      val fieldName = getFieldName(fieldMirror)
-      fieldMirror -> (fieldMirror.typeSignature match {
-        case v if v <:< ViewMappingInfo.OptionType => readField(mirror, isOption = true, data, v.typeArgs.head, fieldName) match {
+  private def readFields(mirror: ru.Mirror, fieldsDesc: Seq[FieldDesc], data: Data): Seq[(ru.TermSymbol, Any)] = {
+    fieldsDesc.map { desc =>
+      val fieldName = getFieldName(desc)
+      desc.fieldSymbol -> (desc match {
+        case d if d.isOption => readField(mirror, desc, data, desc.fieldSymbol.typeSignature.typeArgs.head, fieldName) match {
           case None => None
           case r: Any => Some(r)
         }
-        case _ => readField(mirror, isOption = false, data, fieldMirror.typeSignature, fieldName)
+        case _ => readField(mirror, desc, data, desc.fieldSymbol.typeSignature, fieldName)
       })
     }
   }
 
-  private def readField(mirror: ru.Mirror, isOption: Boolean, data: Data, field: ru.Type, fieldName: String): Any = {
-    field match {
-      case v if v <:< ViewMappingInfo.ViewLinkType => readRelationship(isOption, data, fieldName, readOneRelationship)
-      case v if v <:< ViewMappingInfo.SeqType && v.typeArgs.head <:< ViewMappingInfo.ViewLinkType => readRelationship(isOption, data, fieldName, readSeqRelationship)
-      case _ => readAttribute(mirror, isOption, data, field, fieldName)
+  private def readField(mirror: ru.Mirror, fieldDesc: FieldDesc, data: Data, field: ru.Type, fieldName: String): Any = {
+    fieldDesc match {
+      case f: LinkFieldDesc if f.isSeq => readRelationship(fieldDesc.isOption, data, fieldName, readSeqRelationship)
+      case f: LinkFieldDesc => readRelationship(fieldDesc.isOption, data, fieldName, readOneRelationship)
+      case _ => readAttribute(mirror, fieldDesc.isOption, data, field, fieldName)
     }
   }
 
@@ -97,7 +98,7 @@ class ViewReader {
   private def readSeqRelationship[V <: ViewItem](keys: Seq[ObjectKey]): Seq[ViewLink[V]] =
     keys.map(key => new ViewLink[V](key))
 
-  private def getFieldName(field: ru.TermSymbol) = field.name.toString
+  private def getFieldName(desc: FieldDesc) = desc.fieldSymbol.name.toString //field.name.toString
 
   private abstract class FieldTypeMapping[T]()
   {
@@ -190,9 +191,11 @@ class ViewReader {
   private def createObject(mirror: ru.Mirror, objectType: ru.Type, jsObject: Map[String, JsonApiValue]): Any = {
     val desc = cacheCreateDescription(mirror, objectType)
     val constructorArgs = desc.constructorParams.map(arg =>
-      fromJsValue(arg.typeSignature, jsObject(arg.name.toString), mirror) )
+      fromJsValue(arg.fieldSymbol.typeSignature,
+        jsObject(arg.fieldSymbol.name.toString), mirror) )
     val variables = desc.params.map(variable =>
-      variable -> fromJsValue(variable.typeSignature, jsObject(variable.name.toString), mirror) )
+      variable.fieldSymbol.asTerm -> fromJsValue(variable.fieldSymbol.typeSignature,
+        jsObject(variable.fieldSymbol.name.toString), mirror) )
       .toMap
     constructObject(desc, objectType, constructorArgs, variables)
   }
@@ -218,13 +221,14 @@ class ViewReader {
   private def cacheCreateDescription(mirror: ru.Mirror, objectType: ru.Type) = {
     if (!createDescriptionsCache.contains(objectType)) {
       val constructor = objectType.typeSymbol.asClass.primaryConstructor.asMethod
-      var constructorParams = List[ru.TermSymbol]()
+      var constructorParams = List[FieldDesc]()
       if (constructor.paramLists.nonEmpty)
-        constructorParams = constructor.paramLists.head.map(param => param.asTerm)
+        constructorParams = constructor.paramLists.head.map(param => ViewMappingInfo.getFieldDesc(param.asTerm))
       val params = objectType.decls
         .filter(_.isTerm)
         .map(_.asTerm)
         .filter(_.isVar).filter(variable => constructorParams.exists(arg => arg.equals(variable)))
+        .map(param => ViewMappingInfo.getFieldDesc(param))
         .toSeq
       val constructorMirror = mirror.reflectClass(objectType.typeSymbol.asClass)
         .reflectConstructor(constructor)

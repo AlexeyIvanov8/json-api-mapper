@@ -5,7 +5,7 @@ import java.time.temporal.Temporal
 import com.skn.api.view.exception.ParsingException
 import com.skn.api.view.jsonapi.JsonApiPlayModel.{Data, Link, ObjectKey, Relationship}
 import com.skn.api.view.jsonapi.JsonApiValueModel.{JsonApiArray, JsonApiBoolean, JsonApiNumber, JsonApiObject, JsonApiString, JsonApiValue}
-import com.skn.api.view.model.data.{AttributeFieldDesc, FieldDesc, LinkFieldDesc}
+import com.skn.api.view.model.data.{AttributeFieldDesc, FieldDesc, LinkFieldDesc, MirrorFieldDesc}
 import org.slf4j.LoggerFactory
 
 import scala.reflect.runtime.{universe => ru}
@@ -16,7 +16,7 @@ class ViewWriter(val linkDefiner: LinkDefiner) {
   private val logger = LoggerFactory.getLogger(classOf[ViewWriter])
 
   // cases definitions
-  private case class ReflectData(mirror: ru.Mirror, itemType: ru.Type, vars: Map[String, FieldDesc])
+  private case class ReflectData(mirror: ru.Mirror, itemType: ru.Type, vars: Map[String, MirrorFieldDesc])
   private var reflectCache = Map[Class[_], ReflectData]()
 
   private class DataContainer {
@@ -28,16 +28,16 @@ class ViewWriter(val linkDefiner: LinkDefiner) {
   {
     val container = new DataContainer()
     val reflectData = cacheReflectData(item)
-    reflectData.vars.map { case (name, desc) =>
-      val value = desc.fieldMirror.bind(item).get
+    reflectData.vars.map { case (name, field) =>
+      val value = field.mirror.bind(item).get
       value match {
         // skip system values
         case ObjectKey => None
-        case d if desc.isOption => value match {
-          case Some(r) => Some(writeField(desc, desc.fieldType.typeArgs.head, name, r, container))
+        case d if field.desc.isOption => value match {
+          case Some(r) => Some(writeField(field.desc, field.desc.fieldSymbol.typeSignature.typeArgs.head, name, r, container))
           case None => None
         }
-        case value: Any => writeField(desc, desc.fieldType, name, value, container)
+        case value: Any => writeField(field.desc, field.desc.fieldSymbol.typeSignature, name, value, container)
       }
     }
     Data(item.key,
@@ -68,7 +68,7 @@ class ViewWriter(val linkDefiner: LinkDefiner) {
   private def toJsonObject(item: Any): Map[String, JsonApiValue] = {
     val reflectData = cacheReflectData(item)
     reflectData.vars.flatMap { case (name, field) =>
-      val fieldValue = field.fieldMirror.bind(item).get
+      val fieldValue = field.mirror.bind(item).get
       fieldValue match {
         // skip system values
         case value: ObjectKey => None
@@ -109,7 +109,7 @@ class ViewWriter(val linkDefiner: LinkDefiner) {
         .filter(_.isTerm)
         .map(_.asTerm)
         .filter(m => m.isVal || m.isVar)
-        .map { field => field.getter.name.toString -> ViewMappingInfo.getFieldDesc(field, reflectItem.reflectField(field)) }
+        .map { field => field.getter.name.toString -> MirrorFieldDesc(ViewMappingInfo.getFieldDesc(field), reflectItem.reflectField(field)) }
         .toMap
 
       reflectCache += (itemClass -> ReflectData(mirror, reflectItemClass.typeSignature, vars))

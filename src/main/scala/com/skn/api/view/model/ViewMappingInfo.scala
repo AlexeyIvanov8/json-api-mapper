@@ -15,7 +15,7 @@ object ViewMappingInfo {
   val SeqType = ru.typeOf[Seq[_]]
   val ObjectKeyType = ru.typeOf[ObjectKey]
 
-  def getFieldDesc(field: ru.TermSymbol, fieldMirror: ru.FieldMirror): FieldDesc = {
+  def getFieldDesc(field: ru.TermSymbol): FieldDesc = {
     var aType = field.typeSignature
     val isOption = aType <:< ViewMappingInfo.OptionType
     if (isOption)
@@ -25,8 +25,8 @@ object ViewMappingInfo {
       aType = aType.typeArgs.head
     aType match {
       case t if t <:< ViewMappingInfo.ViewLinkType => LinkFieldDesc(
-        isOption = isOption, isSeq = isSeq, fieldMirror, field.typeSignature)
-      case _ => AttributeFieldDesc(isOption, isSeq, fieldMirror, field.typeSignature)
+        isOption = isOption, isSeq = isSeq, field)
+      case _ => AttributeFieldDesc(isOption, isSeq, field)
     }
   }
 }
