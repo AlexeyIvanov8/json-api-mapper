@@ -5,7 +5,7 @@ import java.time.temporal.Temporal
 import com.skn.api.view.exception.ParsingException
 import com.skn.api.view.jsonapi.JsonApiPlayModel.{Data, Link, ObjectKey, Relationship}
 import com.skn.api.view.jsonapi.JsonApiValueModel.{JsonApiArray, JsonApiBoolean, JsonApiNumber, JsonApiObject, JsonApiString, JsonApiValue}
-import com.skn.api.view.model.data.{AttributeFieldDesc, FieldDesc, LinkFieldDesc, MirrorFieldDesc}
+import com.skn.api.view.model.data._
 import org.slf4j.LoggerFactory
 
 import scala.reflect.runtime.{universe => ru}
@@ -52,7 +52,7 @@ class ViewWriter(val linkDefiner: LinkDefiner) {
         container.relationships += (fieldName -> writeSeqRelationship(fieldType.typeArgs.head, value.asInstanceOf[Seq[ViewLink[_ <: ViewItem]]]))
       case d: LinkFieldDesc =>
         container.relationships += (fieldName -> writeOneRelationship(fieldType, value.asInstanceOf[ViewLink[_ <: ViewItem]]))
-      case d: AttributeFieldDesc =>
+      case d @ (_: AttributeFieldDesc | _: ValueFieldDesc) =>
         container.attributes += (fieldName -> toJsonValue(value))
     }
   }
@@ -109,7 +109,7 @@ class ViewWriter(val linkDefiner: LinkDefiner) {
         .filter(_.isTerm)
         .map(_.asTerm)
         .filter(m => m.isVal || m.isVar)
-        .map { field => field.getter.name.toString -> MirrorFieldDesc(ViewMappingInfo.getFieldDesc(field), reflectItem.reflectField(field)) }
+        .map { field => field.getter.name.toString -> MirrorFieldDesc(ViewMappingInfo.getTermSymbolDesc(mirror, field), reflectItem.reflectField(field)) }
         .toMap
 
       reflectCache += (itemClass -> ReflectData(mirror, reflectItemClass.typeSignature, vars))

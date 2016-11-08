@@ -66,7 +66,7 @@ object JsonApiValueModel
   {
     def read(jsonApi: JsonApiValue) = jsonApi match {
       case JsonApiObject(value) => value
-      case _ => throw ParsingException("Expected "+JsonApiObject.getClass.getName+" value instead "+jsonApi.getClass.getName)
+      case _ => throw ParsingException("Expected "+JsonApiObject.getClass.getName+" value instead of "+jsonApi.getClass.getName)
     }
   }
 

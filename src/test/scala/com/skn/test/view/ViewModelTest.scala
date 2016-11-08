@@ -33,6 +33,7 @@ class ViewModelTest extends BaseUnitTest
     val serialized = viewMapper.write(view)
     val deserialized = newViewMapper.read[TestView](serialized)
 
+    logger.info("Before = " + view.toString)
     logger.info("Serialized = " + Json.toJson(serialized)(dataFormat))
     logger.info("Deserialized = " + deserialized)
 
