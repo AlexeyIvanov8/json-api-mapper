@@ -34,10 +34,10 @@ class ViewWriter(val linkDefiner: LinkDefiner) {
         // skip system values
         case ObjectKey => None
         case d if field.desc.isOption => value match {
-          case Some(r) => Some(writeField(field.desc, field.desc.fieldSymbol.typeSignature.typeArgs.head, name, r, container))
+          case Some(r) => Some(writeField(field.desc, name, r, container))
           case None => None
         }
-        case value: Any => writeField(field.desc, field.desc.fieldSymbol.typeSignature, name, value, container)
+        case value: Any => writeField(field.desc, name, value, container)
       }
     }
     Data(item.key,
@@ -46,12 +46,12 @@ class ViewWriter(val linkDefiner: LinkDefiner) {
       Some(container.relationships))
   }
 
-  private def writeField(desc: FieldDesc, fieldType: ru.Type, fieldName: String, value: Any, container: DataContainer): Unit = {
+  private def writeField(desc: FieldDesc, fieldName: String, value: Any, container: DataContainer): Unit = {
     desc match {
       case d: LinkFieldDesc if d.isSeq =>
-        container.relationships += (fieldName -> writeSeqRelationship(fieldType.typeArgs.head, value.asInstanceOf[Seq[ViewLink[_ <: ViewItem]]]))
+        container.relationships += (fieldName -> writeSeqRelationship(desc.unpackType, value.asInstanceOf[Seq[ViewLink[_ <: ViewItem]]]))
       case d: LinkFieldDesc =>
-        container.relationships += (fieldName -> writeOneRelationship(fieldType, value.asInstanceOf[ViewLink[_ <: ViewItem]]))
+        container.relationships += (fieldName -> writeOneRelationship(desc.unpackType, value.asInstanceOf[ViewLink[_ <: ViewItem]]))
       case d @ (_: AttributeFieldDesc | _: ValueFieldDesc) =>
         container.attributes += (fieldName -> toJsonValue(value))
     }
