@@ -9,6 +9,7 @@ import com.skn.api.view.model.data._
 import org.slf4j.LoggerFactory
 
 import scala.reflect.runtime.{universe => ru}
+
 /**
   * Created by Sergey on 30.10.2016.
   */
@@ -48,12 +49,14 @@ class ViewWriter(val linkDefiner: LinkDefiner) {
 
   private def writeField(desc: FieldDesc, fieldName: String, value: Any, container: DataContainer): Unit = {
     desc match {
-      case d: LinkFieldDesc if d.isSeq =>
-        container.relationships += (fieldName -> writeSeqRelationship(desc.unpackType, value.asInstanceOf[Seq[ViewLink[_ <: ViewItem]]]))
-      case d: LinkFieldDesc =>
-        container.relationships += (fieldName -> writeOneRelationship(desc.unpackType, value.asInstanceOf[ViewLink[_ <: ViewItem]]))
       case d @ (_: AttributeFieldDesc | _: ValueFieldDesc) =>
-        container.attributes += (fieldName -> toJsonValue(value))
+        container.attributes += fieldName -> toJsonValue(value)
+      case d: LinkFieldDesc if d.isSeq =>
+        container.relationships +=
+          fieldName -> writeSeqRelationship(desc.unpackType, value.asInstanceOf[Seq[ViewLink[_ <: ViewItem]]])
+      case d: LinkFieldDesc =>
+        container.relationships +=
+          fieldName -> writeOneRelationship(desc.unpackType, value.asInstanceOf[ViewLink[_ <: ViewItem]])
     }
   }
 
