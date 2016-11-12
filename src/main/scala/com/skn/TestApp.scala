@@ -5,9 +5,12 @@ import java.util.concurrent._
 
 import com.skn.api.view.jsonapi.JsonApiPlayModel.ObjectKey
 import com.skn.api.view.model._
+import com.skn.api.view.model.mapper.{SimpleLinkDefiner, ViewReader, ViewWriter}
 import com.skn.common.view.{CustomObject, Home, TestLink, TestView}
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
+
+import scala.reflect.runtime.universe
 
 /**
   *

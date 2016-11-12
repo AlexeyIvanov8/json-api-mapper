@@ -1,7 +1,7 @@
-package com.skn.api.view.model
+package com.skn.api.view.model.data
 
 import com.skn.api.view.jsonapi.JsonApiPlayModel.ObjectKey
-import com.skn.api.view.model.data.{AttributeFieldDesc, FieldDesc, LinkFieldDesc, ValueFieldDesc}
+import com.skn.api.view.model.{ViewLink, ViewValue}
 
 import scala.reflect.runtime.{universe => ru}
 
@@ -14,21 +14,6 @@ object ViewMappingInfo {
   val ViewValueType = ru.typeOf[ViewValue]
   val SeqType = ru.typeOf[Seq[_]]
   val ObjectKeyType = ru.typeOf[ObjectKey]
-
-  /*def getFieldDesc(field: ru.Symbol): FieldDesc = {
-    var aType = field.typeSignature
-    val isOption = aType <:< ViewMappingInfo.OptionType
-    if (isOption)
-      aType = aType.typeArgs.head
-    val isSeq = aType <:< ViewMappingInfo.SeqType
-    if (isSeq)
-      aType = aType.typeArgs.head
-    aType match {
-      case t if t <:< ViewMappingInfo.ViewLinkType => LinkFieldDesc(
-        isOption = isOption, isSeq = isSeq, field, aType)
-      case _ => AttributeFieldDesc(isOption, isSeq, field, aType)
-    }
-  }*/
 
   private def getSymbolDesc(mirror: ru.Mirror, symbol: ru.Symbol, tpe: ru.Type): FieldDesc = {
     var resType = tpe

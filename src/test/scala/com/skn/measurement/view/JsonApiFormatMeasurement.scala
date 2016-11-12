@@ -3,7 +3,7 @@ package com.skn.measurement.view
 import java.time.LocalDateTime
 
 import org.openjdk.jmh.annotations._
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
@@ -12,12 +12,15 @@ import com.skn.api.view.jsonapi.JsonApiPlayModel.{Data, ObjectKey, RootObject}
 import com.skn.api.view.model._
 import com.skn.common.view.{CustomObject, Home, TestLink, TestView}
 import com.skn.common.view.model._
-import com.skn.measurement.view.JsonApiFormatMeasurement.BenchmarkState
+import com.skn.measurement.view.JsonApiFormatMeasurement.{BenchmarkState, SharedState}
 import play.api.libs.json.{JsValue, Json}
 
 import scala.reflect.runtime.{universe => ru}
 import scala.util.Random
 import com.skn.api.view.jsonapi.JsonApiPlayFormat._
+import com.skn.api.view.model.mapper.{SimpleLinkDefiner, ViewReader, ViewWriter}
+
+import scala.collection.convert.Wrappers.ConcurrentMapWrapper
 /**
   *
   * Created by Sergey on 01.10.2016.
@@ -47,26 +50,32 @@ class JsonApiFormatMeasurement //extends BaseUnitTest
   }
 
   @Threads(1)
-  @Benchmark
+  //@Benchmark
   def writeTest1(state: BenchmarkState): Data = {
     reflect(state)
   }
 
   @Threads(3)
-  @Benchmark
+  //@Benchmark
   def writeTest3(state: BenchmarkState): Data = {
     reflect(state)
   }
 
   @Threads(1)
-  @Benchmark
+  //@Benchmark
   def readTest1(state: BenchmarkState): ViewItem =
     state.viewReader.read[TestView](state.testData)
 
   @Threads(3)
-  @Benchmark
+  //@Benchmark
   def readTest3(state: BenchmarkState): ViewItem =
     state.viewReader.read[TestView](state.testData)
+
+  @Threads(1)
+  @Benchmark
+  def putTest(state: BenchmarkState, shared: SharedState): Unit = {
+    shared.map.put(state.random.nextInt(), state.random.nextLong().toString)
+  }
 
   /*@Threads(1)
   @Benchmark
@@ -143,4 +152,8 @@ object JsonApiFormatMeasurement {
       Some(CustomObject(Some("customName"), 34423, Some(List(3.4, 4.5))))))
   }
 
+  @State(Scope.Benchmark)
+  class SharedState {
+    val map = new ConcurrentHashMap[Int, String](10000000)
+  }
 }

@@ -1,4 +1,4 @@
-package com.skn.api.view.model
+package com.skn.api.view.model.mapper
 
 import com.skn.api.view.jsonapi.JsonApiPlayModel.Link
 

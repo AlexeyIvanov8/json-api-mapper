@@ -1,19 +1,20 @@
-package com.skn.api.view.model
+package com.skn.api.view.model.mapper
 
 import java.time.{LocalDate, LocalDateTime}
 
 import com.skn.api.view.exception.ParsingException
-import com.skn.api.view.jsonapi.JsonApiPlayModel.{Data, ObjectKey, Relationship}
+import com.skn.api.view.jsonapi.JsonApiPlayModel.{Data, ObjectKey}
 import com.skn.api.view.jsonapi.JsonApiValueModel.{JsonApiBoolean, JsonApiNumber, JsonApiString, JsonApiValue}
-import com.skn.api.view.model.data.{AttributeFieldDesc, FieldDesc, LinkFieldDesc, ValueFieldDesc}
+import com.skn.api.view.model._
+import com.skn.api.view.model.data._
 import org.slf4j.LoggerFactory
 
 import scala.reflect.ClassTag
-import scala.reflect.runtime.{universe => ru}
+
 /**
-  * Created by Sergey on 28.10.2016.
+  * Created by Sergey on 12.11.2016.
   */
-class ViewReader {
+class DefaultViewReader extends ViewReader {
   val logger = LoggerFactory.getLogger(classOf[ViewReader])
 
   private var fromStringMethodsCache = Map[ru.Type, ViewValueFactory[_]]()
@@ -47,9 +48,7 @@ class ViewReader {
     * @return ViewItem created by data
     */
   def read[V <: ViewItem](data: Data)(implicit classTag: ClassTag[V]): V = {
-    val objectType = cacheTagType(classTag)
-    val createObjectDescription = cacheCreateDescription(classTag, objectType)
-
+    val createObjectDescription = cacheCreateDescription(classTag)
     val constructorArgs = readFields(createObjectDescription.mirror, createObjectDescription.constructorParams, data)
     val args = readFields(createObjectDescription.mirror, createObjectDescription.params, data)
     constructObject(createObjectDescription, createObjectDescription.objectType, constructorArgs.map { case (k, v) => v }, args.toMap).asInstanceOf[V]
@@ -206,14 +205,6 @@ class ViewReader {
   }
 
   // caching methods
-  private def cacheCreateDescription(classTag: ClassTag[_], objectType: ru.Type): CreateObjectDescription = {
-    if (!createDescriptionsCache.contains(objectType)) {
-      val mirror = ru.runtimeMirror(classTag.runtimeClass.getClassLoader)
-      cacheCreateDescription(mirror, objectType)
-    }
-    createDescriptionsCache(objectType)
-  }
-
   private def cacheFromStringMethod(mirror: ru.Mirror, objectType: ru.Type): ViewValueFactory[_] =
   {
     if(!fromStringMethodsCache.contains(objectType)) {
@@ -223,8 +214,16 @@ class ViewReader {
     fromStringMethodsCache(objectType)
   }
 
-  private def cacheCreateDescription(mirror: ru.Mirror, objectType: ru.Type) = {
+  private def cacheCreateDescription(classTag: ClassTag[_]): CreateObjectDescription = {
+    val objectType = cacheTagType(classTag)
+    if (!createDescriptionsCache.contains(objectType)) {
+      val mirror = ru.runtimeMirror(classTag.runtimeClass.getClassLoader)
+      cacheCreateDescription(mirror, objectType)
+    }
+    createDescriptionsCache(objectType)
+  }
 
+  private def cacheCreateDescription(mirror: ru.Mirror, objectType: ru.Type) = {
     if (!createDescriptionsCache.contains(objectType)) {
       val constructor = objectType.typeSymbol.asClass.primaryConstructor.asMethod
       var constructorParams = List[FieldDesc]()

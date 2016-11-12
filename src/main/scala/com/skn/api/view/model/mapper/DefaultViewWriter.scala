@@ -1,19 +1,20 @@
-package com.skn.api.view.model
+package com.skn.api.view.model.mapper
 
 import java.time.temporal.Temporal
 
 import com.skn.api.view.exception.ParsingException
-import com.skn.api.view.jsonapi.JsonApiPlayModel.{Data, Link, ObjectKey, Relationship}
+import com.skn.api.view.jsonapi.JsonApiPlayModel.{Data, ObjectKey, Relationship}
 import com.skn.api.view.jsonapi.JsonApiValueModel.{JsonApiArray, JsonApiBoolean, JsonApiNumber, JsonApiObject, JsonApiString, JsonApiValue}
+import com.skn.api.view.model._
 import com.skn.api.view.model.data._
 import org.slf4j.LoggerFactory
 
-import scala.reflect.runtime.{universe => ru}
-
 /**
-  * Created by Sergey on 30.10.2016.
+  * Default implementation
+ *
+  * @param linkDefiner - for creating links to other view items
   */
-class ViewWriter(val linkDefiner: LinkDefiner) {
+class DefaultViewWriter(val linkDefiner: LinkDefiner) {
   private val logger = LoggerFactory.getLogger(classOf[ViewWriter])
 
   // cases definitions

@@ -3,11 +3,12 @@ package com.skn.test.view
 import java.time.LocalDateTime
 import java.util.concurrent._
 
-import com.skn.api.view.model.{SimpleLinkDefiner, ViewLink, ViewReader, ViewWriter}
+import com.skn.api.view.model.{ViewLink, ViewReader, ViewWriter}
 import com.skn.common.view._
 import play.api.libs.json.Json
 import com.skn.api.view.jsonapi.JsonApiPlayFormat.dataFormat
 import com.skn.api.view.jsonapi.JsonApiPlayModel.ObjectKey
+import com.skn.api.view.model.mapper.{SimpleLinkDefiner, ViewReader, ViewWriter}
 
 import scala.collection.immutable.Stream.Empty
 
