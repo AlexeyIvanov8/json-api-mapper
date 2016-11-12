@@ -18,7 +18,7 @@ import play.api.libs.json.{JsValue, Json}
 import scala.reflect.runtime.{universe => ru}
 import scala.util.Random
 import com.skn.api.view.jsonapi.JsonApiPlayFormat._
-import com.skn.api.view.model.mapper.{SimpleLinkDefiner, ViewReader, ViewWriter}
+import com.skn.api.view.model.mapper.{DefaultViewReader, DefaultViewWriter, SimpleLinkDefiner}
 
 import scala.collection.convert.Wrappers.ConcurrentMapWrapper
 /**
@@ -136,8 +136,8 @@ object JsonApiFormatMeasurement {
   @State(Scope.Thread)
   class BenchmarkState {
     val mapper = new JsonApiMapper
-    val viewWriter = new ViewWriter(new SimpleLinkDefiner)
-    val viewReader = new ViewReader
+    val viewWriter = new DefaultViewWriter(new SimpleLinkDefiner)
+    val viewReader = new DefaultViewReader
     val personFormat = PersonFormat.format
     val houseFormat = HouseFormat.format
     val random = new Random(System.nanoTime())

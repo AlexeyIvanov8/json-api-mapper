@@ -3,14 +3,12 @@ package com.skn.test.view
 import java.time.LocalDateTime
 import java.util.concurrent._
 
-import com.skn.api.view.model.{ViewLink, ViewReader, ViewWriter}
+import com.skn.api.view.model.ViewLink
 import com.skn.common.view._
 import play.api.libs.json.Json
 import com.skn.api.view.jsonapi.JsonApiPlayFormat.dataFormat
 import com.skn.api.view.jsonapi.JsonApiPlayModel.ObjectKey
-import com.skn.api.view.model.mapper.{SimpleLinkDefiner, ViewReader, ViewWriter}
-
-import scala.collection.immutable.Stream.Empty
+import com.skn.api.view.model.mapper._
 
 class ViewModelTest extends BaseUnitTest
 {
@@ -21,8 +19,8 @@ class ViewModelTest extends BaseUnitTest
       1000, TimeUnit.MILLISECONDS,
       new LinkedBlockingQueue[Runnable]())
 
-    val viewMapper = new ViewWriter(new SimpleLinkDefiner)
-    val newViewMapper = new ViewReader
+    val viewMapper = new DefaultViewWriter(new SimpleLinkDefiner)
+    val newViewMapper = new DefaultViewReader
 
     val str = "Js string value"
     val view = TestView(str, 998,

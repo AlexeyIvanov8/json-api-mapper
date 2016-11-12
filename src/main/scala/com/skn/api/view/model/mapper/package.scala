@@ -26,7 +26,7 @@ package object mapper {
     def read[V <: ViewItem](json: String)(implicit classTag: ClassTag[V]): Option[V] = {
       val root = jsonReader(json)
       root.data.flatMap { dataSeq => dataSeq match {
-        case Seq(data) => viewReader.read(data)
+        case Seq(data) => Some(viewReader.read(data))
         case _ => None
       }}
     }
