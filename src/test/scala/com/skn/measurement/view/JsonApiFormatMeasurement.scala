@@ -5,7 +5,9 @@ import java.time.LocalDateTime
 import org.openjdk.jmh.annotations._
 import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.databind.{DeserializationContext, JsonDeserializer, ObjectMapper}
+import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.skn.api.view.jsonapi.JsonApiMapper
 import com.skn.api.view.jsonapi.JsonApiPlayModel.{Data, ObjectKey, RootObject}
@@ -18,7 +20,8 @@ import play.api.libs.json.{JsValue, Json}
 import scala.reflect.runtime.{universe => ru}
 import scala.util.Random
 import com.skn.api.view.jsonapi.JsonApiPlayFormat._
-import com.skn.api.view.model.mapper.{DefaultViewReader, DefaultViewWriter, SimpleLinkDefiner}
+import com.skn.api.view.jsonapi.JsonApiValueModel.{JsonApiString, JsonApiValue}
+import com.skn.api.view.model.mapper._
 
 import scala.collection.convert.Wrappers.ConcurrentMapWrapper
 /**
@@ -45,34 +48,57 @@ class JsonApiFormatMeasurement //extends BaseUnitTest
   }
 
   def reflect(state: BenchmarkState): Data = {
-    val item = create(state)
-    state.viewWriter.write(item)
+    state.viewWriter.write(state.testItem)
   }
 
   @Threads(1)
-  //@Benchmark
+  @Benchmark
   def writeTest1(state: BenchmarkState): Data = {
     reflect(state)
   }
 
   @Threads(3)
-  //@Benchmark
+  @Benchmark
   def writeTest3(state: BenchmarkState): Data = {
     reflect(state)
   }
 
   @Threads(1)
-  //@Benchmark
+  @Benchmark
   def readTest1(state: BenchmarkState): ViewItem =
     state.viewReader.read[TestView](state.testData)
 
   @Threads(3)
-  //@Benchmark
+  @Benchmark
   def readTest3(state: BenchmarkState): ViewItem =
     state.viewReader.read[TestView](state.testData)
 
   @Threads(1)
   @Benchmark
+  def fullRead1(state: BenchmarkState): Option[ViewItem] = {
+    state.jsonViewReader.read[TestView](state.testDataStr)
+  }
+
+  @Threads(3)
+  @Benchmark
+  def fullRead3(state: BenchmarkState): Option[ViewItem] = {
+    state.jsonViewReader.read[TestView](state.testDataStr)
+  }
+
+  @Threads(1)
+  @Benchmark
+  def fullWrite1(state: BenchmarkState): String = {
+    state.jsonViewWriter.write(state.testItem)
+  }
+
+  @Threads(3)
+  @Benchmark
+  def fullWrite3(state: BenchmarkState): String = {
+    state.jsonViewWriter.write(state.testItem)
+  }
+
+  @Threads(1)
+  //@Benchmark
   def putTest(state: BenchmarkState, shared: SharedState): Unit = {
     shared.map.put(state.random.nextInt(), state.random.nextLong().toString)
   }
@@ -143,13 +169,21 @@ object JsonApiFormatMeasurement {
     val random = new Random(System.nanoTime())
     val jacksonMapper = new ObjectMapper()
     val playJson = Json
+
     //val mirror = ru.runtimeMirror(TestView.getClass.getClassLoader)
     jacksonMapper.registerModule(DefaultScalaModule)
 
-    val testData = viewWriter.write(TestView("Js string value" + random.nextLong().toString,
+    val jsonViewReader = new JsonapiViewReader(viewReader, str => jacksonMapper.readValue(str, classOf[RootObject]))
+    val jsonViewWriter = new JsonapiViewWriter(viewWriter, root => jacksonMapper.writeValueAsString(root))
+
+    val testItem = TestView("Js string value" + random.nextLong().toString,
       random.nextLong(), new Home("TH"), Some(0L),
       Some(new ViewLink(TestLink(ObjectKey("link", 1L), Some(LocalDateTime.now())))),
-      Some(CustomObject(Some("customName"), 34423, Some(List(3.4, 4.5))))))
+      Some(CustomObject(Some("customName"), 34423, Some(List(3.4, 4.5)))))
+
+    val testData = viewWriter.write(testItem)
+
+    val testDataStr = jsonViewWriter.write(testItem)
   }
 
   @State(Scope.Benchmark)

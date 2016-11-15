@@ -15,10 +15,11 @@ object JsonApiValueModel
 
   sealed trait JsonApiValue { def as[T](implicit reader: JsonApiValueReader[T]): T = reader.read(this) }
 
-  case class JsonApiString(value: String) extends JsonApiValue
-  case class JsonApiNumber(value: BigDecimal) extends JsonApiValue
-  case class JsonApiFloat(value: Float) extends JsonApiValue
-  case class JsonApiBoolean(value: Boolean) extends JsonApiValue
+  sealed trait JsonApiOneValue[T] extends JsonApiValue { val value: T }
+  case class JsonApiString(value: String) extends JsonApiOneValue[String]
+  case class JsonApiNumber(value: BigDecimal) extends JsonApiOneValue[BigDecimal]
+  case class JsonApiFloat(value: Float) extends JsonApiOneValue[Float]
+  case class JsonApiBoolean(value: Boolean) extends JsonApiOneValue[Boolean]
   case class JsonApiArray(seq: Seq[JsonApiValue]) extends JsonApiValue
   case class JsonApiObject(map: Map[String, JsonApiValue]) extends JsonApiValue
 
