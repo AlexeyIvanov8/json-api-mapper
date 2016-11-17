@@ -29,7 +29,7 @@ package model {
 
   /**
     * Trait for create values who can be serialize/deserialize in String
-    * Also need define companion object with ViewValueFactory trait
+    * Also, for that must be defined companion object with ViewValueFactory trait
     */
   trait ViewValue {
     override def toString: String = super.toString

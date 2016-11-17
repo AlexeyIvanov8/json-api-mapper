@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.core.JsonParser.NumberType
 import com.fasterxml.jackson.core.{JsonGenerator, JsonParser, TreeNode}
 import com.fasterxml.jackson.databind.Module.SetupContext
-import com.fasterxml.jackson.databind.{DeserializationContext, JsonNode, ObjectMapper, SerializerProvider}
+import com.fasterxml.jackson.databind._
 import com.fasterxml.jackson.databind.module.{SimpleDeserializers, SimpleSerializers}
 import com.fasterxml.jackson.databind.node.{JsonNodeType, ObjectNode}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
@@ -16,9 +16,10 @@ import scala.collection.JavaConverters._
   * Created by Sergey on 15.11.2016.
   */
 object JsonApiJacksonFormat {
-  val jacksonMapper = init()
 
-  private def init(): ObjectMapper = {
+  val jacksonMapper = createMapper()
+
+  def createMapper(): ObjectMapper = {
     val mapper = new ObjectMapper()
     val module = new DefaultScalaModule {
       override def setupModule(context: SetupContext): Unit = {
@@ -41,17 +42,16 @@ object JsonApiJacksonFormat {
           val codec = parser.getCodec
           val node = codec.readTree(parser).asInstanceOf[JsonNode]
           node.getNodeType match {
-            case JsonNodeType.STRING => JsonApiString(node.asText())
             case JsonNodeType.NUMBER => node.numberType() match {
-              case NumberType.BIG_DECIMAL => JsonApiNumber(codec.treeToValue(node, classOf[BigDecimal]))
+              case NumberType.BIG_DECIMAL => JsonApiNumber(BigDecimal(node.asText())) //codec.treeToValue(node, classOf[BigDecimal]))
               case NumberType.DOUBLE => JsonApiNumber(node.asDouble())
               case NumberType.INT => JsonApiNumber(node.intValue())
               case NumberType.LONG => JsonApiNumber(node.longValue())
               case _ => JsonApiNumber(BigDecimal(node.asText()))
             }
             case JsonNodeType.ARRAY =>
-              JsonApiArray(for (i: Int <- 0 until node.size()) yield
-                codec.treeToValue(node.get(i), classOf[JsonApiValue]))
+              JsonApiArray((for(elt <- node.elements().asScala) yield
+                codec.treeToValue(elt, classOf[JsonApiValue])).toSeq)
             case JsonNodeType.OBJECT => JsonApiObject(
               node.asInstanceOf[ObjectNode].fields()
                 .asScala
@@ -69,6 +69,8 @@ object JsonApiJacksonFormat {
 
     mapper.setSerializationInclusion(Include.NON_NULL)
     mapper.setSerializationInclusion(Include.NON_EMPTY)
+    mapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
+    mapper.enable(SerializationFeature.WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED)
     mapper.registerModule(module)
 
     mapper

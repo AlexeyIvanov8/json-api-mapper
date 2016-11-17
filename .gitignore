@@ -6,4 +6,5 @@
 .cache-main
 .cache-tests
 .classpath
+*.dmp
 /project/target

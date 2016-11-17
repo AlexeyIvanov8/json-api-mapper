@@ -2,6 +2,7 @@ package com.skn.common.view
 
 import java.time.LocalDateTime
 
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.skn.api.view.jsonapi.{JsonApiJacksonFormat, JsonApiMapper}
 import com.skn.api.view.jsonapi.JsonApiPlayModel.ObjectKey
 import com.skn.api.view.model.ViewLink
@@ -16,7 +17,8 @@ class BaseUnitTest extends FlatSpec with Matchers
   val mapper = new JsonApiMapper
 
   def mappers = new {
-    val jacksonMapper = JsonApiJacksonFormat.jacksonMapper
+    val jacksonMapper = JsonApiJacksonFormat.createMapper()
+    jacksonMapper.enable(SerializationFeature.INDENT_OUTPUT)
     val viewWriter = new DefaultViewWriter(new SimpleLinkDefiner)
     val jsonViewWriter = new JsonapiViewWriter(viewWriter, root => jacksonMapper.writeValueAsString(root))
   }

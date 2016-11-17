@@ -3,7 +3,8 @@ package com.skn
 import java.time.LocalDateTime
 import java.util.concurrent._
 
-import com.skn.api.view.jsonapi.JsonApiPlayModel.ObjectKey
+import com.skn.api.view.jsonapi.JsonApiJacksonFormat
+import com.skn.api.view.jsonapi.JsonApiPlayModel.{ObjectKey, RootObject}
 import com.skn.api.view.model._
 import com.skn.api.view.model.mapper._
 import com.skn.common.view.{CustomObject, Home, TestLink, TestView}
@@ -28,20 +29,26 @@ object TestApp extends App {
         override def call(): Long = {
           var count = 0L
           val viewMapper = new DefaultViewWriter(new SimpleLinkDefiner)
+
           val item = TestView("t", 998,
             new Home("TH"),
             Some(1),
             Some(new ViewLink(TestLink(ObjectKey("testLink", 1L), Some(LocalDateTime.now())))),
             Some(CustomObject(Some("customName"), 94, Some(3.4 :: 4.5 :: Nil))))
           val testData = viewMapper.write(item)
+
           val viewReader = new DefaultViewReader
+          val jsonViewReader = new JsonapiViewReader(viewReader, str => JsonApiJacksonFormat.jacksonMapper.readValue(str, classOf[RootObject]))
+          val jsonViewWriter = new JsonapiViewWriter(viewMapper, root => JsonApiJacksonFormat.jacksonMapper.writeValueAsString(root))
+
+          val testStr = jsonViewWriter.write(item)
           for (j <- 0 to batch) yield {
 
             /*val item = TestView("Js string value", 998, Some(1),
               Some(CustomObject(Some("customName"), 94, Some(3.4 :: 4.5 :: Nil))))*/
-            //val data = viewReader.read[TestView](testData)
-            val data = viewMapper.write(item)
-            count += data.key.id.getOrElse(0L)
+            val data = jsonViewReader.read[TestView](testStr)
+            //val data = jsonViewWriter.write(item)
+            count += /*1+data.length*0 // */ data.get.key.id.getOrElse(0L)
           }
           count
         }
