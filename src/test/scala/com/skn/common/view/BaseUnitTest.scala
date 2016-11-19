@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.skn.api.view.jsonapi.{JsonApiJacksonFormat, JsonApiMapper}
 import com.skn.api.view.jsonapi.JsonApiPlayModel.ObjectKey
 import com.skn.api.view.model.ViewLink
-import com.skn.api.view.model.mapper.{DefaultViewWriter, JsonapiViewWriter, SimpleLinkDefiner}
+import com.skn.api.view.model.mapper.{DefaultViewWriter, JsonApiViewWriter, SimpleLinkDefiner}
 import com.typesafe.scalalogging._
 import org.scalatest.{FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
@@ -20,7 +20,7 @@ class BaseUnitTest extends FlatSpec with Matchers
     val jacksonMapper = JsonApiJacksonFormat.createMapper()
     jacksonMapper.enable(SerializationFeature.INDENT_OUTPUT)
     val viewWriter = new DefaultViewWriter(new SimpleLinkDefiner)
-    val jsonViewWriter = new JsonapiViewWriter(viewWriter, root => jacksonMapper.writeValueAsString(root))
+    val jsonViewWriter = new JsonApiViewWriter(viewWriter, root => jacksonMapper.writeValueAsString(root))
   }
 
   def data = new {

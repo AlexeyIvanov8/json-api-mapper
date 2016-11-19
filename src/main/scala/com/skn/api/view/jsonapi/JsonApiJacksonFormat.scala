@@ -66,11 +66,11 @@ object JsonApiJacksonFormat {
       }
     }
 
-
     mapper.setSerializationInclusion(Include.NON_NULL)
     mapper.setSerializationInclusion(Include.NON_EMPTY)
     mapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
     mapper.enable(SerializationFeature.WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED)
+
     mapper.registerModule(module)
 
     mapper

@@ -22,7 +22,7 @@ package object mapper {
   }
 
   /** Next classes combine View model mapping and Json api mapping */
-  class JsonapiViewReader(val viewReader: ViewReader, jsonReader: String => RootObject) {
+  class JsonApiViewReader(val viewReader: ViewReader, jsonReader: String => RootObject) {
     def read[V <: ViewItem](json: String)(implicit classTag: ClassTag[V]): Option[V] = {
       val root = jsonReader(json)
       root.data.flatMap { dataSeq => dataSeq match {
@@ -32,7 +32,7 @@ package object mapper {
     }
   }
 
-  class JsonapiViewWriter(val viewWriter: ViewWriter, val jsonMapper: RootObject => String) {
+  class JsonApiViewWriter(val viewWriter: ViewWriter, val jsonMapper: RootObject => String) {
     def write[V <: ViewItem](item: V): String = {
       jsonMapper(RootObject(viewWriter.write[V](item) :: Nil))
     }

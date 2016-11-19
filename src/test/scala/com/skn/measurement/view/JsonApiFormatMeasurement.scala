@@ -173,8 +173,8 @@ object JsonApiFormatMeasurement {
     //val mirror = ru.runtimeMirror(TestView.getClass.getClassLoader)
     jacksonMapper.registerModule(DefaultScalaModule)
 
-    val jsonViewReader = new JsonapiViewReader(viewReader, str => jacksonMapper.readValue(str, classOf[RootObject]))
-    val jsonViewWriter = new JsonapiViewWriter(viewWriter, root => jacksonMapper.writeValueAsString(root))
+    val jsonViewReader = new JsonApiViewReader(viewReader, str => jacksonMapper.readValue(str, classOf[RootObject]))
+    val jsonViewWriter = new JsonApiViewWriter(viewWriter, root => jacksonMapper.writeValueAsString(root))
 
     val testItem = TestView("Js string value" + random.nextLong().toString,
       random.nextLong(), new Home("TH"), Some(0L),

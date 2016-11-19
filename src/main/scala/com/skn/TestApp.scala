@@ -38,8 +38,8 @@ object TestApp extends App {
           val testData = viewMapper.write(item)
 
           val viewReader = new DefaultViewReader
-          val jsonViewReader = new JsonapiViewReader(viewReader, str => JsonApiJacksonFormat.jacksonMapper.readValue(str, classOf[RootObject]))
-          val jsonViewWriter = new JsonapiViewWriter(viewMapper, root => JsonApiJacksonFormat.jacksonMapper.writeValueAsString(root))
+          val jsonViewReader = new JsonApiViewReader(viewReader, str => JsonApiJacksonFormat.jacksonMapper.readValue(str, classOf[RootObject]))
+          val jsonViewWriter = new JsonApiViewWriter(viewMapper, root => JsonApiJacksonFormat.jacksonMapper.writeValueAsString(root))
 
           val testStr = jsonViewWriter.write(item)
           for (j <- 0 to batch) yield {
