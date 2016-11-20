@@ -6,6 +6,7 @@ import com.skn.api.view.model.{ViewLink, ViewValue}
 import scala.reflect.runtime.{universe => ru}
 
 /**
+  * Common used tools for read and write view
   * Created by Sergey on 30.10.2016.
   */
 object ViewMappingInfo {

@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory
 import scala.reflect.runtime.{ universe => ru }
 /**
   * Default implementation
- *
   * @param linkDefiner - for creating links to other view items
   */
 class DefaultViewWriter(val linkDefiner: LinkDefiner) extends ViewWriter {
@@ -27,6 +26,12 @@ class DefaultViewWriter(val linkDefiner: LinkDefiner) extends ViewWriter {
     var relationships: Map[String, Relationship] = Map[String, Relationship]()
   }
 
+  /**
+    * Entry point for ViewItem write
+    * @param item - what you want write
+    * @tparam T - concrete item type
+    * @return json api Data, that represent send item
+    */
   def write[T <: ViewItem](item: T): Data =
   {
     val container = new DataContainer()
@@ -35,7 +40,8 @@ class DefaultViewWriter(val linkDefiner: LinkDefiner) extends ViewWriter {
       val value = field.mirror.bind(item).get
       value match {
         // skip system values
-        case ObjectKey => None
+        case v: ObjectKey => None
+        //case null => null//throw ParsingException("null is not support in root fields(" + name + "). Use explicit None instead.")
         case d if field.desc.isOption => value match {
           case Some(r) => Some(writeField(field.desc, name, r, container))
           case None => None
@@ -44,14 +50,22 @@ class DefaultViewWriter(val linkDefiner: LinkDefiner) extends ViewWriter {
       }
     }
     Data(item.key,
-      Some(container.attributes),
+      container.attributes match {
+        case a if a.isEmpty => None
+        case _ => Some(container.attributes) },
       Some(linkDefiner.getLink(reflectData.itemType)),
-      Some(container.relationships))
+      container.relationships match {
+        case r if r.isEmpty => None
+        case _ => Some(container.relationships) })
   }
 
+  /**
+    * Aggregate Option unboxed value to container
+    */
   private def writeField(desc: FieldDesc, fieldName: String, value: Any, container: DataContainer): Unit = {
     desc match {
       case d @ (_: AttributeFieldDesc | _: ValueFieldDesc) =>
+        logger.info("write attribute " + fieldName + " with type " + value.getClass.getName)
         container.attributes += fieldName -> toJsonValue(value)
       case d: LinkFieldDesc if d.isSeq =>
         container.relationships +=
@@ -98,6 +112,7 @@ class DefaultViewWriter(val linkDefiner: LinkDefiner) extends ViewWriter {
       case value: ViewValue => JsonApiString(value.toString)
       case values: Seq[_] => JsonApiArray(values.map(value => toJsonValue(value)))
       case value: AnyRef => JsonApiObject(toJsonObject(value))
+      case null => null
       case _ => throw ParsingException("Unhandled value " + field.toString + " while convert to view item")
     }
   }

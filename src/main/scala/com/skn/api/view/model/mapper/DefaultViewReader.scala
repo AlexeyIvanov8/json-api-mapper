@@ -100,6 +100,7 @@ class DefaultViewReader extends ViewReader {
     res match {
       case Some(attribute) => fromJsValue(mirror, cacheFieldDesc(mirror, desc.unpackType), attribute)
       case None if !desc.isOption => throw ParsingException("Not found attribute with name " + fieldName)
+      case null => null
       case _ => None
     }
   }

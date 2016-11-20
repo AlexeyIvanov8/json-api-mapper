@@ -56,4 +56,11 @@ class ViewModelTest extends BaseUnitTest
     logger.info("data attrs = " + dataSeq.head.attributes)
     dataSeq.head.attributes.get("str").as[String] shouldEqual data.itemName
   }
+
+  "A null values" should "be serialize to null" in {
+    val home = TestSimple(ObjectKey("w", 0), null)
+    val data = mappers.viewWriter.write[TestSimple](home)
+    logger.info("data with null = " + data)
+    data.attributes.get("name") shouldBe null
+  }
 }
