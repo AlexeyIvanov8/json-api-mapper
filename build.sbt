@@ -13,8 +13,8 @@ ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) }
 
 lazy val commonSettings = Seq(
 	organization := "com.skn",
-	name := "jsonapi-mapper",
-	version := "0.1",
+	name := "json-api-mapper",
+	version := "1.0-SNAPSHOT",
 	scalaVersion := scalaVersionString,
   scalaVersion in Test := scalaVersionString,
   scalaVersion in ThisBuild := scalaVersionString,
