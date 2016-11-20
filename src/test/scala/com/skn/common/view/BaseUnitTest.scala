@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.skn.api.view.jsonapi.{JsonApiJacksonFormat, JsonApiMapper}
-import com.skn.api.view.jsonapi.JsonApiPlayModel.ObjectKey
+import com.skn.api.view.jsonapi.JsonApiModel.ObjectKey
 import com.skn.api.view.model.ViewLink
 import com.skn.api.view.model.mapper.ReadFeatures.AbsentValueAsNull
 import com.skn.api.view.model.mapper._

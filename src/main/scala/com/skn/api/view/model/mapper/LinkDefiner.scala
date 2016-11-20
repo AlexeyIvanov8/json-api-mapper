@@ -1,6 +1,6 @@
 package com.skn.api.view.model.mapper
 
-import com.skn.api.view.jsonapi.JsonApiPlayModel.Link
+import com.skn.api.view.jsonapi.JsonApiModel.Link
 
 import scala.reflect.runtime.{universe => ru}
 /**

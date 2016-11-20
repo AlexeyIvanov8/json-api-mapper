@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.{DeserializationContext, JsonDeserializer,
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.skn.api.view.jsonapi.{JsonApiJacksonFormat, JsonApiMapper}
-import com.skn.api.view.jsonapi.JsonApiPlayModel.{Data, ObjectKey, RootObject}
+import com.skn.api.view.jsonapi.JsonApiModel.{Data, ObjectKey, RootObject}
 import com.skn.api.view.model._
 import com.skn.common.view.{CustomObject, Home, TestLink, TestView}
 import com.skn.common.view.model._
@@ -31,8 +31,8 @@ import scala.collection.convert.Wrappers.ConcurrentMapWrapper
 @Fork(value = 1, warmups = 0)
 @Warmup(iterations = 4)
 @Measurement(iterations = 4, time = 1, timeUnit = TimeUnit.SECONDS)
-@OutputTimeUnit(TimeUnit.NANOSECONDS)
-@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.MILLISECONDS)
+@BenchmarkMode(Array(Mode.Throughput))
 class JsonApiFormatMeasurement //extends BaseUnitTest
 {
   //
@@ -52,24 +52,24 @@ class JsonApiFormatMeasurement //extends BaseUnitTest
   }
 
   @Threads(1)
-  //@Benchmark
+  @Benchmark
   def writeTest1(state: BenchmarkState): Data = {
     reflect(state)
   }
 
   @Threads(3)
-  //@Benchmark
+  @Benchmark
   def writeTest3(state: BenchmarkState): Data = {
     reflect(state)
   }
 
   @Threads(1)
-  //@Benchmark
+  @Benchmark
   def readTest1(state: BenchmarkState): ViewItem =
     state.viewReader.read[TestView](state.testData)
 
   @Threads(3)
-  //@Benchmark
+  @Benchmark
   def readTest3(state: BenchmarkState): ViewItem =
     state.viewReader.read[TestView](state.testData)
 
@@ -86,13 +86,13 @@ class JsonApiFormatMeasurement //extends BaseUnitTest
   }
 
   @Threads(1)
-  //@Benchmark
+  @Benchmark
   def fullWrite1(state: BenchmarkState): String = {
     state.jsonViewWriter.write(state.testItem)
   }
 
   @Threads(3)
-  //@Benchmark
+  @Benchmark
   def fullWrite3(state: BenchmarkState): String = {
     state.jsonViewWriter.write(state.testItem)
   }

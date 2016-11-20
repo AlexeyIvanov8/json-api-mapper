@@ -1,7 +1,7 @@
 package com.skn.api.view.jsonapi
 
 import com.skn.api.version.ApiVersion
-import com.skn.api.view.jsonapi.JsonApiPlayModel.{Attributes, Data, Error, JsonApiInfo, JsonPointer, Link, Meta, ObjectKey, Related, Relationship, Relationships, RootObject, Source}
+import com.skn.api.view.jsonapi.JsonApiModel.{Attributes, Data, Error, JsonApiInfo, JsonPointer, Link, Meta, ObjectKey, Related, Relationship, Relationships, RootObject, Source}
 import play.api.libs.json._
 import com.skn.api.view.jsonapi.JsonApiValueFormat._
 import com.skn.api.view.jsonapi.JsonApiValueModel.JsonApiValue

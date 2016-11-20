@@ -3,7 +3,7 @@ package com.skn.api.view.model.mapper
 import java.time.temporal.Temporal
 
 import com.skn.api.view.exception.ParsingException
-import com.skn.api.view.jsonapi.JsonApiPlayModel.{Data, ObjectKey, Relationship}
+import com.skn.api.view.jsonapi.JsonApiModel.{Data, ObjectKey, Relationship}
 import com.skn.api.view.jsonapi.JsonApiValueModel.{JsonApiArray, JsonApiBoolean, JsonApiNumber, JsonApiObject, JsonApiString, JsonApiValue}
 import com.skn.api.view.model._
 import com.skn.api.view.model.data._

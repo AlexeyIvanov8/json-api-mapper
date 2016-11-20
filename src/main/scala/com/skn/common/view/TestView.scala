@@ -2,7 +2,7 @@ package com.skn.common.view
 
 import java.time.LocalDateTime
 
-import com.skn.api.view.jsonapi.JsonApiPlayModel.ObjectKey
+import com.skn.api.view.jsonapi.JsonApiModel.ObjectKey
 import com.skn.api.view.model.{ViewItem, ViewLink, ViewValue, ViewValueFactory}
 
 /**

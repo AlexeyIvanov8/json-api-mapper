@@ -1,6 +1,6 @@
 package com.skn.api.view.model.data
 
-import com.skn.api.view.jsonapi.JsonApiPlayModel.ObjectKey
+import com.skn.api.view.jsonapi.JsonApiModel.ObjectKey
 import com.skn.api.view.model.{ViewLink, ViewValue}
 
 import scala.reflect.runtime.{universe => ru}

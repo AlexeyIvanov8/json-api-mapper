@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 import java.util.concurrent._
 
 import com.skn.api.view.jsonapi.JsonApiJacksonFormat
-import com.skn.api.view.jsonapi.JsonApiPlayModel.{ObjectKey, RootObject}
+import com.skn.api.view.jsonapi.JsonApiModel.{ObjectKey, RootObject}
 import com.skn.api.view.model._
 import com.skn.api.view.model.mapper._
 import com.skn.common.view.{CustomObject, Home, TestLink, TestView}

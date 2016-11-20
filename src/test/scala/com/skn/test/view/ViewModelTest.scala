@@ -8,7 +8,7 @@ import com.skn.api.view.model.ViewLink
 import com.skn.common.view._
 import play.api.libs.json.Json
 import com.skn.api.view.jsonapi.JsonApiPlayFormat.dataFormat
-import com.skn.api.view.jsonapi.JsonApiPlayModel.{ObjectKey, RootObject}
+import com.skn.api.view.jsonapi.JsonApiModel.{ObjectKey, RootObject}
 import com.skn.api.view.model.mapper._
 
 import scala.collection.immutable.Stream.Empty

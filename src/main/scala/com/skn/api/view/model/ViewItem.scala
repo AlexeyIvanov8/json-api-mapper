@@ -1,6 +1,6 @@
 package com.skn.api.view
 
-import com.skn.api.view.jsonapi.JsonApiPlayModel.ObjectKey
+import com.skn.api.view.jsonapi.JsonApiModel.ObjectKey
 
 /**
   * Model for present view structure
