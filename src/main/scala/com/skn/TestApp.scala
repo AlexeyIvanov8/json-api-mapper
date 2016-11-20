@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 import java.util.concurrent._
 
 import com.skn.api.view.jsonapi.JsonApiJacksonFormat
-import com.skn.api.view.jsonapi.JsonApiPlayModel.{ObjectKey, RootObject}
+import com.skn.api.view.jsonapi.JsonApiModel.{ObjectKey, RootObject}
 import com.skn.api.view.model._
 import com.skn.api.view.model.mapper._
 import com.skn.common.view.{CustomObject, Home, TestLink, TestView}
@@ -37,7 +37,7 @@ object TestApp extends App {
             Some(CustomObject(Some("customName"), 94, Some(3.4 :: 4.5 :: Nil))))
           val testData = viewMapper.write(item)
 
-          val viewReader = new DefaultViewReader
+          val viewReader = new DefaultViewReader(Map[ReadFeatures, Boolean]())
           val jsonViewReader = new JsonApiViewReader(viewReader, str => JsonApiJacksonFormat.jacksonMapper.readValue(str, classOf[RootObject]))
           val jsonViewWriter = new JsonApiViewWriter(viewMapper, root => JsonApiJacksonFormat.jacksonMapper.writeValueAsString(root))
 

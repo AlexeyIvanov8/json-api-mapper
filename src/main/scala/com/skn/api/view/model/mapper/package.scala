@@ -1,6 +1,6 @@
 package com.skn.api.view.model
 
-import com.skn.api.view.jsonapi.JsonApiPlayModel.{Data, RootObject}
+import com.skn.api.view.jsonapi.JsonApiModel.{Data, RootObject}
 
 import scala.reflect.ClassTag
 

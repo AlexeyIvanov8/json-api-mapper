@@ -3,20 +3,24 @@ package com.skn.api.view.model.mapper
 import java.time.{LocalDate, LocalDateTime}
 
 import com.skn.api.view.exception.ParsingException
-import com.skn.api.view.jsonapi.JsonApiPlayModel.{Data, ObjectKey}
+import com.skn.api.view.jsonapi.JsonApiModel.{Data, ObjectKey}
 import com.skn.api.view.jsonapi.JsonApiValueModel.{JsonApiBoolean, JsonApiNumber, JsonApiString, JsonApiValue}
 import com.skn.api.view.model._
 import com.skn.api.view.model.data._
+import com.skn.api.view.model.mapper.ReadFeatures.AbsentValueAsNull
 import org.slf4j.LoggerFactory
 
 import scala.reflect.ClassTag
-import scala.reflect.runtime.{ universe => ru }
+import scala.reflect.runtime.{universe => ru}
 
 /**
   * Created by Sergey on 12.11.2016.
   */
-class DefaultViewReader extends ViewReader {
-  val logger = LoggerFactory.getLogger(classOf[ViewReader])
+class DefaultViewReader(val features: Map[ReadFeatures, Boolean] = Map[ReadFeatures, Boolean]()) extends ViewReader {
+
+  private val absentValueAsNull = features.get(AbsentValueAsNull()).getOrElse(false)
+
+  private val logger = LoggerFactory.getLogger(classOf[ViewReader])
 
   private var fromStringMethodsCache = Map[ru.Type, ViewValueFactory[_]]()
 
@@ -52,7 +56,9 @@ class DefaultViewReader extends ViewReader {
     val createObjectDescription = cacheCreateDescription(classTag)
     val constructorArgs = readFields(createObjectDescription.mirror, createObjectDescription.constructorParams, data)
     val args = readFields(createObjectDescription.mirror, createObjectDescription.params, data)
-    constructObject(createObjectDescription, createObjectDescription.objectType, constructorArgs.map { case (k, v) => v }, args.toMap).asInstanceOf[V]
+    constructObject(createObjectDescription,
+      createObjectDescription.objectType,
+      constructorArgs.map { case (k, v) => v }, args.toMap).asInstanceOf[V]
   }
 
   private def readFields(mirror: ru.Mirror, fieldsDesc: Seq[FieldDesc], data: Data): Seq[(ru.TermSymbol, Any)] = {
@@ -71,6 +77,7 @@ class DefaultViewReader extends ViewReader {
     fieldDesc match {
       case f: LinkFieldDesc if f.isSeq => readRelationship(fieldDesc, data, readSeqRelationship)
       case f: LinkFieldDesc => readRelationship(fieldDesc, data, readOneRelationship)
+      case f: KeyFieldDesc => data.key
       case _ => readAttribute(mirror, fieldDesc, data)
     }
   }
@@ -99,8 +106,12 @@ class DefaultViewReader extends ViewReader {
     }
     res match {
       case Some(attribute) => fromJsValue(mirror, cacheFieldDesc(mirror, desc.unpackType), attribute)
-      case None if !desc.isOption => throw ParsingException("Not found attribute with name " + fieldName)
-      case _ => None
+      //case None if !desc.isOption => throw ParsingException("Not found attribute with name " + fieldName)
+      case None => desc.isOption match {
+        case true => None
+        case false => if(absentValueAsNull) null else
+          throw ParsingException("Value " + fieldName + " not found. Enable " + AbsentValueAsNull() + " if absent values allowed.")
+      }
     }
   }
 
@@ -258,4 +269,10 @@ class DefaultViewReader extends ViewReader {
       typesDescCache += fieldType -> ViewMappingInfo.getTypeSymbolDesc(mirror, fieldType.typeSymbol.asType)
     typesDescCache(fieldType)
   }
+}
+
+trait ReadFeatures
+
+object ReadFeatures {
+  case class AbsentValueAsNull() extends ReadFeatures
 }

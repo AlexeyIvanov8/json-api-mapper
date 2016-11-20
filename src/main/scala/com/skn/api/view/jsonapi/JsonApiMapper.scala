@@ -1,7 +1,7 @@
 package com.skn.api.view.jsonapi
 
 import com.skn.api.view.exception.ParsingException
-import com.skn.api.view.jsonapi.JsonApiPlayModel.RootObject
+import com.skn.api.view.jsonapi.JsonApiModel.RootObject
 import com.skn.api.{Fail, Result, Success}
 import play.api.libs.json.{JsValue, Json}
 import com.skn.api.view.jsonapi.JsonApiPlayFormat._

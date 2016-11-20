@@ -1,11 +1,12 @@
 package com.skn.api.view.model.data
 
-import com.skn.api.view.jsonapi.JsonApiPlayModel.ObjectKey
+import com.skn.api.view.jsonapi.JsonApiModel.ObjectKey
 import com.skn.api.view.model.{ViewLink, ViewValue}
 
 import scala.reflect.runtime.{universe => ru}
 
 /**
+  * Common used tools for read and write view
   * Created by Sergey on 30.10.2016.
   */
 object ViewMappingInfo {
@@ -28,6 +29,8 @@ object ViewMappingInfo {
         isOption = isOption, isSeq = isSeq, symbol, resType)
       case t if t <:< ViewMappingInfo.ViewValueType => ValueFieldDesc(
         isOption = isOption, isSeq = isSeq, symbol, resType)
+      case t if t =:= ObjectKeyType => KeyFieldDesc(
+        isOption = isOption, isSeq = false, symbol, resType)
       case _ => AttributeFieldDesc(isOption, isSeq, symbol, resType, mirror.runtimeClass(resType))
     }
   }

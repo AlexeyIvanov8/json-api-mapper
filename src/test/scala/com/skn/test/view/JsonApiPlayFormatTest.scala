@@ -5,7 +5,7 @@ import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import play.api.libs.json.{JsArray, Json}
 import com.skn.common.view.model._
 import com.skn.api.Success
-import com.skn.api.view.jsonapi.JsonApiPlayModel.RootObject
+import com.skn.api.view.jsonapi.JsonApiModel.RootObject
 import com.skn.api.view.jsonapi.JsonApiPlayFormat.rootFormat
 import com.skn.api.view.jsonapi.FieldNames
 import com.skn.api.view.jsonapi.JsonApiValueModel.{JsonApiArray, JsonApiNumber, JsonApiObject, JsonApiString, JsonApiValue}

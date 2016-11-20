@@ -1,6 +1,6 @@
 package com.skn.common.view.model
 
-import com.skn.api.view.jsonapi.JsonApiPlayModel.ObjectKey
+import com.skn.api.view.jsonapi.JsonApiModel.ObjectKey
 import com.skn.api.view.model.ViewItem
 
 import scala.language.experimental.macros

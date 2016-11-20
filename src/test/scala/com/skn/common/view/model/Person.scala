@@ -1,7 +1,7 @@
 package com.skn.common.view.model
 
-import com.skn.api.view.jsonapi.JsonApiPlayModel._
-import com.skn.api.view.jsonapi.JsonApiPlayModel.{Data, ObjectKey, RootObject}
+import com.skn.api.view.jsonapi.JsonApiModel._
+import com.skn.api.view.jsonapi.JsonApiModel.{Data, ObjectKey, RootObject}
 import com.skn.api.Success
 import com.skn.api.view.jsonapi.JsonApiValueModel.{JsonApiNumber, JsonApiString}
 import com.skn.api.view.jsonapi.JsonApiValueModel._
