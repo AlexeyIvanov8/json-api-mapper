@@ -163,7 +163,7 @@ object JsonApiFormatMeasurement {
   class BenchmarkState {
     val mapper = new JsonApiMapper
     val viewWriter = new DefaultViewWriter(new SimpleLinkDefiner)
-    val viewReader = new DefaultViewReader
+    val viewReader = new DefaultViewReader(Map[ReadFeatures, Boolean](ReadFeatures.AbsentValueAsNull() -> true))
     val personFormat = PersonFormat.format
     val houseFormat = HouseFormat.format
     val random = new Random(System.nanoTime())

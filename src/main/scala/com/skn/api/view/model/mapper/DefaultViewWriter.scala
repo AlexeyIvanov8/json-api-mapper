@@ -41,7 +41,7 @@ class DefaultViewWriter(val linkDefiner: LinkDefiner) extends ViewWriter {
       value match {
         // skip system values
         case v: ObjectKey => None
-        //case null => null//throw ParsingException("null is not support in root fields(" + name + "). Use explicit None instead.")
+        case null => null//throw ParsingException("null is not support in root fields(" + name + "). Use explicit None instead.")
         case d if field.desc.isOption => value match {
           case Some(r) => Some(writeField(field.desc, name, r, container))
           case None => None
@@ -65,7 +65,6 @@ class DefaultViewWriter(val linkDefiner: LinkDefiner) extends ViewWriter {
   private def writeField(desc: FieldDesc, fieldName: String, value: Any, container: DataContainer): Unit = {
     desc match {
       case d @ (_: AttributeFieldDesc | _: ValueFieldDesc) =>
-        logger.info("write attribute " + fieldName + " with type " + value.getClass.getName)
         container.attributes += fieldName -> toJsonValue(value)
       case d: LinkFieldDesc if d.isSeq =>
         container.relationships +=

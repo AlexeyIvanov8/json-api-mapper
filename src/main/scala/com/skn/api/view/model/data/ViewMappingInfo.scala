@@ -29,6 +29,8 @@ object ViewMappingInfo {
         isOption = isOption, isSeq = isSeq, symbol, resType)
       case t if t <:< ViewMappingInfo.ViewValueType => ValueFieldDesc(
         isOption = isOption, isSeq = isSeq, symbol, resType)
+      case t if t =:= ObjectKeyType => KeyFieldDesc(
+        isOption = isOption, isSeq = false, symbol, resType)
       case _ => AttributeFieldDesc(isOption, isSeq, symbol, resType, mirror.runtimeClass(resType))
     }
   }

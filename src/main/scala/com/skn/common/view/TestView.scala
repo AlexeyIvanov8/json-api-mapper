@@ -19,7 +19,8 @@ object Home extends ViewValueFactory[Home] {
 
 case class TestLink(key: ObjectKey, date: Option[LocalDateTime]) extends ViewItem
 
-case class TestSimple(key: ObjectKey, name: String) extends ViewItem
+case class TestSimple(key: ObjectKey, name: String, order: Int) extends ViewItem
+
 case class TestView(str: String,
                     num: BigDecimal,
                     home: Home,

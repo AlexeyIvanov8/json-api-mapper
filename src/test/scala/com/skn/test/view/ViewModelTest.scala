@@ -3,6 +3,7 @@ package com.skn.test.view
 import java.time.LocalDateTime
 import java.util.concurrent._
 
+import com.skn.api.view.exception.ParsingException
 import com.skn.api.view.model.ViewLink
 import com.skn.common.view._
 import play.api.libs.json.Json
@@ -21,7 +22,7 @@ class ViewModelTest extends BaseUnitTest
       new LinkedBlockingQueue[Runnable]())
 
     val viewMapper = new DefaultViewWriter(new SimpleLinkDefiner)
-    val newViewMapper = new DefaultViewReader
+    val newViewMapper = mappers.viewReader//new DefaultViewReader
 
     val view = data.item
 
@@ -43,6 +44,8 @@ class ViewModelTest extends BaseUnitTest
     val deLink = deserialized.link.get
     deLink.key.`type` should be (view.link.get.key.`type`)
     deLink.key.id.get should be (view.link.get.key.id.get)
+    deserialized.key should be (view.key)
+    logger.info("deser key = " + deserialized.key)
   }
 
   "A JsonapiViewWriter" should "serialize ViewItem to String" in {
@@ -57,10 +60,15 @@ class ViewModelTest extends BaseUnitTest
     dataSeq.head.attributes.get("str").as[String] shouldEqual data.itemName
   }
 
-  "A null values" should "be serialize to null" in {
-    val home = TestSimple(ObjectKey("w", 0), null)
-    val data = mappers.viewWriter.write[TestSimple](home)
-    logger.info("data with null = " + data)
-    data.attributes.get("name") shouldBe null
+  "Absent values" should "be deserialized to null if absent feature enabled" in {
+    val res = mappers.viewWriter.write(data.itemWithNull)
+    val testAfter = mappers.viewReader.read[TestSimple](res)
+    testAfter.name shouldBe null
+  }
+
+  "Absent values" should "produce error, if absent feature disabled" in {
+    val viewReaderAbsent = new DefaultViewReader
+    val res = mappers.viewWriter.write(data.itemWithNull)
+    an [ParsingException] should be thrownBy viewReaderAbsent.read[TestSimple](res)
   }
 }
