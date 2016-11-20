@@ -8,3 +8,4 @@
 .classpath
 *.dmp
 /project/target
+/project/project/target
