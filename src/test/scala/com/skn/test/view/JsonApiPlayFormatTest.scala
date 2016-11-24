@@ -24,7 +24,7 @@ class JsonApiPlayFormatTest extends BaseUnitTest
 			val root = jsRoot.as[RootObject](rootFormat)
 			root.data.size should be (1)
 			val dataHead = root.data.get.head
-			dataHead.key.id.get should be (1)
+			dataHead.key.id.get.as[Long] should be (1)
 			dataHead.attributes.map { attrs =>
 				attrs.contains("name") should be (true)
 				attrs.contains("age") should be (true)
