@@ -39,6 +39,12 @@ object JsonApiValueModel
     }
   }
 
+  class JsonApiLongReader extends JsonApiValueReader[Long] {
+    def read(jsonApi: JsonApiValue) = jsonApi match {
+      case JsonApiNumber(value) => value.longValue()
+      case _ => throw ParsingException("Expected "+JsonApiNumber.getClass.getName+" value instead "+jsonApi.getClass.getName)
+    }
+  }
   /*class JsonApiFloatReader extends JsonApiValueReader[Float]
   {
     def read(jsonApi: JsonApiValue) = jsonApi match {
@@ -77,4 +83,6 @@ object JsonApiValueModel
   implicit val booleanReader = new JsonApiBooleanReader
   implicit val arrayReader = new JsonApiArrayReader
   implicit val objectReader = new JsonApiObjectReader
+  implicit val longReader = new JsonApiLongReader
+
 }

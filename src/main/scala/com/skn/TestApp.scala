@@ -11,7 +11,7 @@ import com.skn.common.view.{CustomObject, Home, TestLink, TestView}
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
-import scala.reflect.runtime.universe
+import com.skn.api.view.jsonapi.JsonApiValueModel._
 
 /**
   *
@@ -33,7 +33,7 @@ object TestApp extends App {
           val item = TestView("t", 998,
             new Home("TH"),
             Some(1),
-            Some(new ViewLink(TestLink(ObjectKey("testLink", 1L), Some(LocalDateTime.now())))),
+            Some(new ViewLink(TestLink(1L, Some(LocalDateTime.now())))),
             Some(CustomObject(Some("customName"), 94, Some(3.4 :: 4.5 :: Nil))))
           val testData = viewMapper.write(item)
 
@@ -48,7 +48,7 @@ object TestApp extends App {
               Some(CustomObject(Some("customName"), 94, Some(3.4 :: 4.5 :: Nil))))*/
             val data = jsonViewReader.read[TestView](testStr)
             //val data = jsonViewWriter.write(item)
-            count += /*1+data.length*0 // */ data.get.key.id.getOrElse(0L)
+            count += /*1+data.length*0 // */ data.get.key.id.map(_.as[Long]).getOrElse(0L)
           }
           count
         }

@@ -88,8 +88,8 @@ class DefaultViewWriter(val linkDefiner: LinkDefiner) extends ViewWriter {
     reflectData.vars.flatMap { case (name, field) =>
       val fieldValue = field.mirror.bind(item).get
       fieldValue match {
-        // skip system values
-        case value: ObjectKey => None
+        // skip system values. In attributes this not need
+        //case value: ObjectKey => None
         case value: Option[_] => value match {
           case Some(r) => Some(name -> toJsonValue(r))
           case None => None

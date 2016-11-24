@@ -30,7 +30,7 @@ class BaseUnitTest extends FlatSpec with Matchers
 
     val item = TestView(itemName,
       5, new Home("TH"), Some(0L),
-      Some(new ViewLink(TestLink(ObjectKey("link", 1L), Some(LocalDateTime.now())))),
+      Some(new ViewLink(TestLink(1L, Some(LocalDateTime.now())))),
       Some(CustomObject(Some("customName"), 34423, Some(List(3.4, 4.5)))))
     val itemData = mappers.viewWriter.write(item)
     val itemDataStr = mappers.jsonViewWriter.write(item)

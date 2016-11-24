@@ -28,6 +28,7 @@ lazy val root = (project in file("."))
 libraryDependencies ++= Seq(
   "org.apache.httpcomponents" % "httpclient" % "4.5.2",
 	"com.typesafe.play" % "play-json_2.12.0-RC1" % "2.6.0-SNAPSHOT",
+	//"com.typesafe.play" % "play-json_2.11" % "2.5.10",
 	"ch.qos.logback" % "logback-classic" % "1.1.3",
 	"com.typesafe.scala-logging" % "scala-logging_2.11" % "3.1.0",
   "com.fasterxml.jackson.module" % "jackson-module-scala_2.12.0-RC1" % "2.8.3",
