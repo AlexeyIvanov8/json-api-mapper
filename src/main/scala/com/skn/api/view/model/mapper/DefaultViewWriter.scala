@@ -15,7 +15,7 @@ import scala.reflect.runtime.{ universe => ru }
   * @param linkDefiner - for creating links to other view items
   */
 class DefaultViewWriter(val linkDefiner: LinkDefiner) extends ViewWriter {
-  
+
   private val logger = LoggerFactory.getLogger(classOf[ViewWriter])
 
   // cases definitions
