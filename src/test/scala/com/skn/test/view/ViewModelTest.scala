@@ -42,8 +42,10 @@ class ViewModelTest extends BaseUnitTest
     deCustom.prices shouldEqual view.custom.get.prices
     deserialized.link shouldBe defined
     val deLink = deserialized.link.get
+
     deLink.key.`type` should be (view.link.get.key.`type`)
     deLink.key.id.get should be (view.link.get.key.id.get)
+
     deserialized.key should be (view.key)
     logger.info("deser key = " + deserialized.key)
   }

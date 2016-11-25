@@ -15,6 +15,7 @@ import scala.reflect.runtime.{ universe => ru }
   * @param linkDefiner - for creating links to other view items
   */
 class DefaultViewWriter(val linkDefiner: LinkDefiner) extends ViewWriter {
+  
   private val logger = LoggerFactory.getLogger(classOf[ViewWriter])
 
   // cases definitions
@@ -53,7 +54,7 @@ class DefaultViewWriter(val linkDefiner: LinkDefiner) extends ViewWriter {
       container.attributes match {
         case a if a.isEmpty => None
         case _ => Some(container.attributes) },
-      Some(linkDefiner.getLink(reflectData.itemType)),
+      Some(linkDefiner.getLink(item.key)),
       container.relationships match {
         case r if r.isEmpty => None
         case _ => Some(container.relationships) })
@@ -64,23 +65,24 @@ class DefaultViewWriter(val linkDefiner: LinkDefiner) extends ViewWriter {
     */
   private def writeField(desc: FieldDesc, fieldName: String, value: Any, container: DataContainer): Unit = {
     desc match {
-      case d @ (_: AttributeFieldDesc | _: ValueFieldDesc) =>
+      case _ @ (_: AttributeFieldDesc | _: ValueFieldDesc) =>
         container.attributes += fieldName -> toJsonValue(value)
       case d: LinkFieldDesc if d.isSeq =>
-        container.relationships +=
-          fieldName -> writeSeqRelationship(desc.unpackType, value.asInstanceOf[Seq[ViewLink[_ <: ViewItem]]])
-      case d: LinkFieldDesc =>
+        val relationshipsSeq = value.asInstanceOf[Seq[ViewLink[_ <: ViewItem]]]
+        if(!relationshipsSeq.isEmpty)
+           container.relationships += fieldName -> writeSeqRelationship(desc.unpackType, relationshipsSeq)
+      case _: LinkFieldDesc =>
         container.relationships +=
           fieldName -> writeOneRelationship(desc.unpackType, value.asInstanceOf[ViewLink[_ <: ViewItem]])
     }
   }
 
   private def writeSeqRelationship(linkedItemType: ru.Type, relationships: Seq[ViewLink[_ <: ViewItem]]): Relationship = {
-    Relationship(linkDefiner.getLink(linkedItemType), relationships.map(_.key))
+    Relationship(linkDefiner.getCommonLink(relationships.head.key), relationships.map(_.key))
   }
 
   private def writeOneRelationship(linkedItemType: ru.Type, relationship: ViewLink[_ <: ViewItem]): Relationship = {
-    Relationship(linkDefiner.getLink(linkedItemType), relationship.key :: Nil)
+    Relationship(linkDefiner.getLink(relationship.key), relationship.key :: Nil)
   }
 
   private def toJsonObject(item: Any): Map[String, JsonApiValue] = {
@@ -88,8 +90,6 @@ class DefaultViewWriter(val linkDefiner: LinkDefiner) extends ViewWriter {
     reflectData.vars.flatMap { case (name, field) =>
       val fieldValue = field.mirror.bind(item).get
       fieldValue match {
-        // skip system values. In attributes this not need
-        //case value: ObjectKey => None
         case value: Option[_] => value match {
           case Some(r) => Some(name -> toJsonValue(r))
           case None => None
