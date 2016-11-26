@@ -10,8 +10,10 @@ import com.skn.api.view.model.mapper._
 import com.skn.common.view.{CustomObject, Home, TestLink, TestView}
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
-
 import com.skn.api.view.jsonapi.JsonApiValueModel._
+import com.skn.common.view.model.inheritance.WideChild
+
+import scala.reflect.runtime.{ universe => ru }
 
 /**
   *
@@ -62,9 +64,16 @@ object TestApp extends App {
 
   override def main(args: Array[String]): Unit =
   {
-    val executorService = new ThreadPoolExecutor(8, 8, 1000, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable]())
-    //bench(executorService, 1, 16, 100000)
+    val child = new WideChild(1L, "FN", "LN")
+    val viewWriter = new DefaultViewWriter(new SimpleLinkDefiner())
+    val jsonViewWriter = new JsonApiViewWriter(
+      viewWriter,
+      root => JsonApiJacksonFormat.jacksonMapper.writeValueAsString(root))
+
+    val res = jsonViewWriter.write(child)
+    System.out.println("res = " + res)
+    /*val executorService = new ThreadPoolExecutor(8, 8, 1000, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable]())
     System.out.println("\n\n")
-    bench(executorService, 4, 16, 10000000)
+    bench(executorService, 4, 16, 10000000)*/
   }
 }

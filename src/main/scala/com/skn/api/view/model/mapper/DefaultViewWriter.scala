@@ -128,7 +128,12 @@ class DefaultViewWriter(val linkDefiner: LinkDefiner) extends ViewWriter {
         .filter(_.isTerm)
         .map(_.asTerm)
         .filter(m => m.isVal || m.isVar)
-        .map { field => field.getter.name.toString -> MirrorFieldDesc(ViewMappingInfo.getTermSymbolDesc(mirror, field), reflectItem.reflectField(field)) }
+        .map { field =>
+          val name = field.getter match {
+            case g if g.info =:= ru.NoType => field.name.toString
+            case _ => field.getter.name.toString
+          }
+          name -> MirrorFieldDesc(ViewMappingInfo.getTermSymbolDesc(mirror, field), reflectItem.reflectField(field)) }
         .toMap
 
       reflectCache += (itemClass -> ReflectData(mirror, reflectItemClass.typeSignature, vars))
