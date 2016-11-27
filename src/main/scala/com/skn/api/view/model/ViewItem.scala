@@ -8,6 +8,8 @@ import com.skn.api.view.jsonapi.JsonApiModel.ObjectKey
   */
 package model {
 
+  import com.skn.api.view.jsonapi.JsonApiValueModel.JsonApiValue
+
   /**
     * Trait for classes that contains data of view
     */

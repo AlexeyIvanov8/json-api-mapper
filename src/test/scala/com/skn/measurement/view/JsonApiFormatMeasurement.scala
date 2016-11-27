@@ -43,7 +43,7 @@ class JsonApiFormatMeasurement //extends BaseUnitTest
   def create(state: BenchmarkState): TestView = {
     TestView("Js string value" + state.random.nextLong().toString,
       state.random.nextLong(), new Home("TH"), Some(0L),
-      Some(new ViewLink(TestLink(ObjectKey("link", 1L), Some(LocalDateTime.now())))),
+      Some(new ViewLink(TestLink(1L, Some(LocalDateTime.now())))),
       Some(CustomObject(Some("customName"), 34423, Some(List(3.4, 4.5)))))
   }
 
@@ -178,7 +178,7 @@ object JsonApiFormatMeasurement {
 
     val testItem = TestView("Js string value" + random.nextLong().toString,
       random.nextLong(), new Home("TH"), Some(0L),
-      Some(new ViewLink(TestLink(ObjectKey("link", 1L), Some(LocalDateTime.now())))),
+      Some(new ViewLink(TestLink(1L, Some(LocalDateTime.now())))),
       Some(CustomObject(Some("customName"), 34423, Some(List(3.4, 4.5)))))
 
     val testData = viewWriter.write(testItem)

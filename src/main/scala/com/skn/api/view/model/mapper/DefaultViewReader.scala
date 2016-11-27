@@ -180,8 +180,13 @@ class DefaultViewReader(val features: Map[ReadFeatures, Boolean] = Map[ReadFeatu
         fieldMapper match {
           case Some( mapper) => mapper.fromJsValue(jsValue)
           case None =>
-            val jsObject = jsValue.as[Map[String, JsonApiValue]]
-            createObject(mirror, fieldDesc.unpackType, jsObject)
+            try {
+              val jsObject = jsValue.as[Map[String, JsonApiValue]]
+              createObject(mirror, fieldDesc.unpackType, jsObject)
+            } catch {
+              case ex: ParsingException => throw ParsingException("Fail when fill field[" +
+                fieldDesc.unpackType.termSymbol.name + "]", ex)
+            }
         }
     }
 

@@ -55,10 +55,10 @@ object JsonApiPlayFormat {
     ))
   }
 
-  // TODO: macro definition format not work on 2.12
+  // TODO: macro definition format not working in 2.12
   val objectKeyFormat = new Format[ObjectKey] {
     override def reads(json: JsValue): JsResult[ObjectKey] = JsSuccess(
-      ObjectKey((json \ FieldNames.`type`).as[String], (json \ FieldNames.id).asOpt[Long]))
+      ObjectKey((json \ FieldNames.`type`).as[String], (json \ FieldNames.id).asOpt[JsonApiValue]))
 
     override def writes(key: ObjectKey): JsValue = JsObject(Seq(
       FieldNames.`type` -> JsString(key.`type`),
@@ -126,7 +126,7 @@ object JsonApiPlayFormat {
         data.meta.map { meta => FieldNames.meta -> Json.toJson(meta)(metaFormat) })
 
     def reads(json: JsValue) = JsSuccess(Data(
-      ObjectKey((json \ FieldNames.`type`).as[String], (json \ FieldNames.id).asOpt[Long]),
+      ObjectKey((json \ FieldNames.`type`).as[String], (json \ FieldNames.id).asOpt[JsonApiValue]),
       (json \ FieldNames.attributes).asOpt[Attributes](attributesFormat),
       (json \ FieldNames.links).asOpt[Link](linksFormat),
       (json \ FieldNames.relationships).asOpt[Relationships](relationshipsFormat),

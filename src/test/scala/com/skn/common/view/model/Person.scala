@@ -27,14 +27,14 @@ object PersonFormat
       Success(Person(
         attributes("name").as[String],
         attributes("age").as[BigDecimal].intValue() + add,
-        data.key.id ))
+        data.key.id.map(_.as[Long]) ))
     }
 
     def toRootObject(person: Person) =
     {
       Success(
         RootObject(
-          Some(Data(ObjectKey("person", person.id),
+          Some(Data(ObjectKey("person", person.id.map(JsonApiNumber(_))),
             Some(Attributes(
               "name" -> JsonApiString(person.name),
               "age" -> JsonApiNumber(person.age) ))

@@ -2,9 +2,10 @@ package com.skn.common.view.model
 
 import com.skn.api.view.jsonapi.JsonApiModel.{Attributes, Data, ObjectKey, RootObject}
 import com.skn.api.Success
-import com.skn.api.view.jsonapi.JsonApiValueModel.JsonApiString
+import com.skn.api.view.jsonapi.JsonApiValueModel.{JsonApiNumber, JsonApiString}
 import com.skn.api.view.jsonapi.RootObjectMapper
-import play.api.libs.json.JsString
+
+import com.skn.api.view.jsonapi.JsonApiValueModel._
 
 case class Address(street: String, building: String, id: Option[Long])
 
@@ -16,7 +17,7 @@ object AddressFormat
 			Success(
 					RootObject(
 							Some(Data(
-									ObjectKey("address", address.id),
+									ObjectKey("address", address.id.map(JsonApiNumber(_))),
 									Some(Attributes(
 											("street", JsonApiString(address.street)),
 											("building", JsonApiString(address.building))
@@ -29,7 +30,9 @@ object AddressFormat
 		{
 			val dataHead = root.data.get.head
 			val attrs = dataHead.attributes.get
-			Success(Address(attrs("street").asInstanceOf[JsonApiString].value, attrs("building").asInstanceOf[JsonApiString].value, dataHead.key.id))
+			Success(Address(
+				attrs("street").asInstanceOf[JsonApiString].value,
+				attrs("building").asInstanceOf[JsonApiString].value, dataHead.key.id.map(_.as[Long])))
 		}
 	}
 }

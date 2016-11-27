@@ -10,6 +10,7 @@ import play.api.libs.json.Json
 import com.skn.api.view.jsonapi.JsonApiPlayFormat.dataFormat
 import com.skn.api.view.jsonapi.JsonApiModel.{ObjectKey, RootObject}
 import com.skn.api.view.model.mapper._
+import com.skn.common.view.model.WithStringId
 
 import scala.collection.immutable.Stream.Empty
 
@@ -42,8 +43,10 @@ class ViewModelTest extends BaseUnitTest
     deCustom.prices shouldEqual view.custom.get.prices
     deserialized.link shouldBe defined
     val deLink = deserialized.link.get
+
     deLink.key.`type` should be (view.link.get.key.`type`)
     deLink.key.id.get should be (view.link.get.key.id.get)
+
     deserialized.key should be (view.key)
     logger.info("deser key = " + deserialized.key)
   }
@@ -70,5 +73,13 @@ class ViewModelTest extends BaseUnitTest
     val viewReaderAbsent = new DefaultViewReader
     val res = mappers.viewWriter.write(data.itemWithNull)
     an [ParsingException] should be thrownBy viewReaderAbsent.read[TestSimple](res)
+  }
+
+  "Not only long id " should "be supported" in {
+    val id = "id_34"
+    val item = WithStringId(id, 45L)
+    val jsonItem = mappers.jsonViewWriter.write(item)
+    val itemAfter = mappers.jsonViewReader.read[WithStringId](jsonItem)
+    itemAfter.get.id should equal (id)
   }
 }

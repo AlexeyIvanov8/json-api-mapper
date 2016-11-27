@@ -1,7 +1,7 @@
 package com.skn.api.view.jsonapi
 
 import com.skn.api.version.ApiVersion
-import com.skn.api.view.jsonapi.JsonApiValueModel.JsonApiValue
+import com.skn.api.view.jsonapi.JsonApiValueModel.{JsonApiNumber, JsonApiString, JsonApiValue}
 
 /**
 * Created by Sergey on 01.10.2016.
@@ -16,10 +16,12 @@ object JsonApiModel {
 
   implicit def Meta(values: (String, JsonApiValue)*): Meta = Map(values: _*)
 
-  case class ObjectKey(`type`: String, id: Option[Long] = None)
+  case class ObjectKey(`type`: String, id: Option[JsonApiValue] = None)
 
   implicit object ObjectKey {
-    def apply(`type`: String, id: Long): ObjectKey = ObjectKey(`type`, Some(id))
+    def apply[T <: JsonApiValue](`type`: String, id: T): ObjectKey = ObjectKey(`type`, Some(id))
+    def apply(`type`: String, id: Long): ObjectKey = ObjectKey(`type`, JsonApiNumber(id))
+    def apply(`type`: String, id: String): ObjectKey = ObjectKey(`type`, JsonApiString(id))
   }
 
   case class JsonApiInfo(version: Option[ApiVersion] = None, meta: Option[Meta] = None)
@@ -37,7 +39,7 @@ object JsonApiModel {
   case class Relationship(links: Link, data: Option[Seq[ObjectKey]] = None, meta: Option[Meta] = None)
 
   implicit object Relationship {
-    def apply(links: Link, data: Seq[ObjectKey]): Relationship = Relationship(links, Some(data))
+    def apply[T <: JsonApiValue](links: Link, data: Seq[ObjectKey]): Relationship = Relationship(links, Some(data))
   }
 
   type Relationships = Map[String, Relationship]
