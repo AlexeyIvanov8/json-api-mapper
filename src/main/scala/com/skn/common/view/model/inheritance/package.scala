@@ -12,6 +12,6 @@ package object inheritance {
                   val firstName: String,
                   protected val `type`: String = "low_parent") extends ViewItem { val key = ObjectKey(`type`, id) }
 
-  class WideChild(id: Long, firstName: String, val lastName: String)
+  class WideChild(id: Long, override val firstName: String, val lastName: String)
     extends LowParent(id = id, firstName = firstName, `type` = "wide_child")
 }

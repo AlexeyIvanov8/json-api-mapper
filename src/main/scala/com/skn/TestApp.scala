@@ -3,6 +3,7 @@ package com.skn
 import java.time.LocalDateTime
 import java.util.concurrent._
 
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.skn.api.view.jsonapi.JsonApiJacksonFormat
 import com.skn.api.view.jsonapi.JsonApiModel.{ObjectKey, RootObject}
 import com.skn.api.view.model._
@@ -13,7 +14,7 @@ import org.slf4j.LoggerFactory
 import com.skn.api.view.jsonapi.JsonApiValueModel._
 import com.skn.common.view.model.inheritance.WideChild
 
-import scala.reflect.runtime.{ universe => ru }
+import scala.reflect.runtime.{universe => ru}
 
 /**
   *
@@ -62,16 +63,44 @@ object TestApp extends App {
     }
   }
 
+  class TestClass {
+    private val x = 123
+    // Uncomment the following line to make the test fail
+     () => x
+  }
+
+  def testFieldAccess(): Unit = {
+    import scala.reflect.runtime.{universe => ru}
+    val mirror = ru.runtimeMirror(getClass.getClassLoader)
+
+    val obj = new TestClass
+    val objType = mirror.reflect(obj).symbol.toType
+    val objFields = objType.members.collect { case ms: ru.MethodSymbol if ms.isGetter => ms }
+
+    System.out.println("tr = " + mirror.reflect(obj).reflectField(objFields.head).get)
+    //Assert.assertEquals(123, )
+  }
+
   override def main(args: Array[String]): Unit =
   {
+    testFieldAccess()
+
     val child = new WideChild(1L, "FN", "LN")
     val viewWriter = new DefaultViewWriter(new SimpleLinkDefiner())
+    val jacksonMapper = JsonApiJacksonFormat.createMapper()
+    jacksonMapper.enable(SerializationFeature.INDENT_OUTPUT)
     val jsonViewWriter = new JsonApiViewWriter(
       viewWriter,
-      root => JsonApiJacksonFormat.jacksonMapper.writeValueAsString(root))
-
+      root => jacksonMapper.writeValueAsString(root))
+    val jsonViewReader = new JsonApiViewReader(
+      new DefaultViewReader,
+      json => jacksonMapper.readValue(json, classOf[RootObject]))
     val res = jsonViewWriter.write(child)
     System.out.println("res = " + res)
+    val after = jsonViewReader.read[WideChild](res)
+    System.out.println("after = " + after)
+
+
     /*val executorService = new ThreadPoolExecutor(8, 8, 1000, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable]())
     System.out.println("\n\n")
     bench(executorService, 4, 16, 10000000)*/

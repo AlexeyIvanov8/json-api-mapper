@@ -3,6 +3,7 @@ import pl.project13.scala.sbt.JmhPlugin
 
 //val scalaVersionString = "2.12.0-SNAPSHOT"
 val scalaVersionString = "2.12.0-SNAPSHOT"
+//val scalaVersionString = "2.11.8"
 
 // for super safe compiler plugin
 //resolvers += "Artima Maven Repository" at "http://repo.artima.com/releases"

@@ -128,6 +128,7 @@ class DefaultViewWriter(val linkDefiner: LinkDefiner) extends ViewWriter {
         .filter(_.isTerm)
         .map(_.asTerm)
         .filter(m => m.isVal || m.isVar)
+        //.filterNot(f => f.getter.info =:= ru.NoType)
         .map { field =>
           val name = field.getter match {
             case g if g.info =:= ru.NoType => field.name.toString
