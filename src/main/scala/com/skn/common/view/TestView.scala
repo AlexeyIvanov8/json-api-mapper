@@ -18,6 +18,10 @@ object Home extends ViewValueFactory[Home] {
   override def fromString(str: String): Home = new Home(str.substring(1))
 }
 
+case class TestSeq(id: Long,
+                   simpleSeq: Seq[TestSimple],
+                   optionSeq: Option[Seq[Long]]) extends ViewItem { val key = ObjectKey("test_seq", id) }
+
 case class TestLink(id: Long, date: Option[LocalDateTime]) extends ViewItem { val key = ObjectKey("testLink", id) }
 
 case class TestSimple(key: ObjectKey, name: String, order: Int) extends ViewItem

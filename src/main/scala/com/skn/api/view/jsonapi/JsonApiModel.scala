@@ -1,7 +1,7 @@
 package com.skn.api.view.jsonapi
 
 import com.skn.api.version.ApiVersion
-import com.skn.api.view.jsonapi.JsonApiValueModel.{JsonApiNumber, JsonApiString, JsonApiValue}
+import com.skn.api.view.jsonapi.JsonApiValueModel.{JsonApiNumber, JsonApiOneValue, JsonApiString, JsonApiValue}
 
 /**
 * Created by Sergey on 01.10.2016.

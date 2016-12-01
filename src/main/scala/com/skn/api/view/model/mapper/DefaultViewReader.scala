@@ -105,7 +105,12 @@ class DefaultViewReader(val features: Map[ReadFeatures, Boolean] = Map[ReadFeatu
       case None => None
     }
     res match {
-      case Some(attribute) => fromJsValue(mirror, cacheFieldDesc(mirror, desc.unpackType), attribute)
+      case Some(attribute) =>
+        val value = fromJsValue(mirror, desc, attribute)
+        value match {
+        case Some(v) if desc.isOption => v
+        case _ => value
+      }
       //case None if !desc.isOption => throw ParsingException("Not found attribute with name " + fieldName)
       case None => desc.isOption match {
         case true => None
@@ -162,6 +167,10 @@ class DefaultViewReader(val features: Map[ReadFeatures, Boolean] = Map[ReadFeatu
     classOf[LocalDateTime] -> new FieldTypeMapping[LocalDateTime]() {
       override def fromJsValue(jsValue: JsonApiValue): LocalDateTime = LocalDateTime.parse(jsValue.as[String])
       override def toJsValue(t: LocalDateTime): JsonApiValue = JsonApiString(t.toString)
+    },
+    classOf[JsonApiValue] -> new FieldTypeMapping[JsonApiValue] {
+      override def fromJsValue(jsValue: JsonApiValue) = jsValue
+      override def toJsValue(t: JsonApiValue) = t
     }
   )
 
@@ -179,21 +188,25 @@ class DefaultViewReader(val features: Map[ReadFeatures, Boolean] = Map[ReadFeatu
         val fieldMapper = fieldsMapping.get(d.unpackClass)
         fieldMapper match {
           case Some( mapper) => mapper.fromJsValue(jsValue)
-          case None =>
-            try {
-              val jsObject = jsValue.as[Map[String, JsonApiValue]]
-              createObject(mirror, fieldDesc.unpackType, jsObject)
-            } catch {
-              case ex: ParsingException => throw ParsingException("Fail when fill field[" +
-                fieldDesc.unpackType.termSymbol.name + "]", ex)
-            }
+          case None => readUnmappedJsValue(mirror, fieldDesc, jsValue)
         }
+      case _: KeyFieldDesc => readUnmappedJsValue(mirror, fieldDesc, jsValue)
     }
 
     if (fieldDesc.isOption)
       Some(result)
     else
       result
+  }
+
+  private def readUnmappedJsValue(mirror: ru.Mirror, fieldDesc: FieldDesc, jsValue: JsonApiValue): Any = {
+    try {
+      val jsObject = jsValue.as[Map[String, JsonApiValue]]
+      createObject(mirror, fieldDesc.unpackType, jsObject)
+    } catch {
+      case ex: ParsingException => throw ParsingException("Fail when fill field[" +
+        fieldDesc.unpackType.typeSymbol.name + "], value[" + jsValue.toString + "]", ex)
+    }
   }
 
   private def constructObject(desc: CreateObjectDescription,
@@ -213,8 +226,7 @@ class DefaultViewReader(val features: Map[ReadFeatures, Boolean] = Map[ReadFeatu
   private def createObject(mirror: ru.Mirror, objectType: ru.Type, jsObject: Map[String, JsonApiValue]): Any = {
     val desc = cacheCreateDescription(mirror, objectType)
     val constructorArgs = desc.constructorParams.map(arg =>
-      fromJsValue(mirror, arg,
-        jsObject(arg.fieldSymbol.name.toString)) )
+      fromJsValue(mirror, arg, jsObject(arg.fieldSymbol.name.toString)) )
     val variables = desc.params.map(variable =>
         variable.fieldSymbol.asTerm -> fromJsValue(mirror, variable, jsObject(getFieldName(variable))))
       .toMap
@@ -271,7 +283,7 @@ class DefaultViewReader(val features: Map[ReadFeatures, Boolean] = Map[ReadFeatu
 
   private def cacheFieldDesc(mirror: ru.Mirror, fieldType: ru.Type): FieldDesc = {
     if(!typesDescCache.contains(fieldType))
-      typesDescCache += fieldType -> ViewMappingInfo.getTypeSymbolDesc(mirror, fieldType.typeSymbol.asType)
+      typesDescCache += fieldType -> ViewMappingInfo.getTypeSymbolDesc(mirror, fieldType.typeSymbol.asType, false)
     typesDescCache(fieldType)
   }
 }

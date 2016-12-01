@@ -16,13 +16,13 @@ object ViewMappingInfo {
   val SeqType = ru.typeOf[Seq[_]]
   val ObjectKeyType = ru.typeOf[ObjectKey]
 
-  private def getSymbolDesc(mirror: ru.Mirror, symbol: ru.Symbol, tpe: ru.Type): FieldDesc = {
+  private def getSymbolDesc(mirror: ru.Mirror, symbol: ru.Symbol, tpe: ru.Type, unpackSeq: Boolean = true): FieldDesc = {
     var resType = tpe
     val isOption = resType <:< ViewMappingInfo.OptionType
     if (isOption)
       resType = resType.typeArgs.head
     val isSeq = resType <:< ViewMappingInfo.SeqType
-    if (isSeq)
+    if (unpackSeq && isSeq)
       resType = resType.typeArgs.head
     resType match {
       case t if t <:< ViewMappingInfo.ViewLinkType => LinkFieldDesc(
@@ -35,8 +35,8 @@ object ViewMappingInfo {
     }
   }
 
-  def getTypeSymbolDesc(mirror: ru.Mirror, symbol: ru.TypeSymbol): FieldDesc = {
-    getSymbolDesc(mirror, symbol, symbol.toType)
+  def getTypeSymbolDesc(mirror: ru.Mirror, symbol: ru.TypeSymbol, unpackSeq: Boolean = true): FieldDesc = {
+    getSymbolDesc(mirror, symbol, symbol.toType, unpackSeq)
   }
 
   def getTermSymbolDesc(mirror: ru.Mirror, symbol: ru.TermSymbol): FieldDesc = {

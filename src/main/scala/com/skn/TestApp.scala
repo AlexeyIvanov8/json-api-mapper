@@ -8,7 +8,7 @@ import com.skn.api.view.jsonapi.JsonApiJacksonFormat
 import com.skn.api.view.jsonapi.JsonApiModel.{ObjectKey, RootObject}
 import com.skn.api.view.model._
 import com.skn.api.view.model.mapper._
-import com.skn.common.view.{CustomObject, Home, TestLink, TestView}
+import com.skn.common.view._
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 import com.skn.api.view.jsonapi.JsonApiValueModel._
@@ -95,11 +95,22 @@ object TestApp extends App {
     val jsonViewReader = new JsonApiViewReader(
       new DefaultViewReader,
       json => jacksonMapper.readValue(json, classOf[RootObject]))
-    val res = jsonViewWriter.write(child)
-    System.out.println("res = " + res)
-    val after = jsonViewReader.read[WideChild](res)
-    System.out.println("after = " + after)
 
+    val item = TestView("item name",
+      5, new Home("TH"), Some(0L),
+      Some(new ViewLink(TestLink(1L, Some(LocalDateTime.now())))),
+      Some(CustomObject(Some("customName"), 34423, Some(List(3.4, 4.5)))))
+    val str = jsonViewWriter.write(item)
+    val back = jsonViewReader.read[TestView](str)
+
+
+    val seqItem = TestSeq(23L,
+      Seq[TestSimple](TestSimple(ObjectKey("st", 3L), "g", 1)),
+      Some(Seq[Long](7L)))
+    val json = jsonViewWriter.write(seqItem)
+    System.out.println("With seq = " + json)
+    val seqAfter = jsonViewReader.read[TestSeq](json)
+    System.out.println("After = " + seqAfter)
 
     /*val executorService = new ThreadPoolExecutor(8, 8, 1000, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable]())
     System.out.println("\n\n")
