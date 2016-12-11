@@ -29,12 +29,14 @@ class BaseUnitTest extends FlatSpec with Matchers
   def data = new {
     val itemName = "Js string value"
 
-    val item = TestView(itemName,
-      5, new Home("TH"), Some(0L),
-      Some(new ViewLink(TestLink(1L, Some(LocalDateTime.now())))),
-      Some(CustomObject(Some("customName"), 34423, Some(List(3.4, 4.5)))))
+    val item = createNewItem()
     val itemData = mappers.viewWriter.write(item)
     val itemDataStr = mappers.jsonViewWriter.write(item)
     val itemWithNull = TestSimple(ObjectKey("fg", 0), null, 1)
+
+    def createNewItem() = TestView(itemName,
+      5, new Home("TH"), Some(0L),
+      Some(new ViewLink(TestLink(1L, Some(LocalDateTime.now())))),
+      Some(CustomObject(Some("customName"), 34423, Some(List(3.4, 4.5)))))
   }
 }

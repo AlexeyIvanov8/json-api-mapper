@@ -109,6 +109,7 @@ class DefaultViewWriter(val linkDefiner: LinkDefiner) extends ViewWriter {
       case value: Double => JsonApiNumber(value)
       case value: Temporal => JsonApiString(value.toString)
       case value: ViewValue => JsonApiString(value.toString)
+      case value: JsonApiValue => value
       case values: Seq[_] => JsonApiArray(values.map(value => toJsonValue(value)))
       case value: AnyRef => JsonApiObject(toJsonObject(value))
       case null => null

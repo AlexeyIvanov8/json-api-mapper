@@ -10,13 +10,17 @@ import com.skn.api.view.model.{ViewItem, ViewLink, ViewValue, ViewValueFactory}
   *
   * Created by Sergey on 11.10.2016.
   */
-class Home(val name: String) extends ViewValue {
+case class Home(val name: String) extends ViewValue {
   override def toString: String = "1"+name
 }
 
 object Home extends ViewValueFactory[Home] {
   override def fromString(str: String): Home = new Home(str.substring(1))
 }
+
+case class TestSeq(id: Long,
+                   simpleSeq: Seq[TestSimple],
+                   optionSeq: Option[Seq[Long]]) extends ViewItem { val key = ObjectKey("test_seq", id) }
 
 case class TestLink(id: Long, date: Option[LocalDateTime]) extends ViewItem { val key = ObjectKey("testLink", id) }
 

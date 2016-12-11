@@ -22,6 +22,20 @@ package model {
   class ViewLink[V <: ViewItem](val key: ObjectKey)
   {
     def this(view: V) = this(view.key)
+
+    override def equals(obj: scala.Any): Boolean = {
+      obj match {
+        case null => false
+        case link: ViewLink[V] => key.equals(link.key)
+        case _ => false
+      }
+    }
+
+    override def hashCode(): Int = key.hashCode()
+    /*override def == (obj: Any): Boolean = {
+      this.equals(obj)
+
+    }*/
   }
 
   /**

@@ -51,7 +51,7 @@ class ViewModelTest extends BaseUnitTest
     logger.info("deser key = " + deserialized.key)
   }
 
-  "A JsonapiViewWriter" should "serialize ViewItem to String" in {
+  "A JsonApiViewWriter" should "serialize ViewItem to String" in {
     val str = mappers.jsonViewWriter.write(data.item)
     logger.info("Current str: "+str)
     val root = mappers.jacksonMapper.readValue(str, classOf[RootObject])
@@ -80,6 +80,44 @@ class ViewModelTest extends BaseUnitTest
     val item = WithStringId(id, 45L)
     val jsonItem = mappers.jsonViewWriter.write(item)
     val itemAfter = mappers.jsonViewReader.read[WithStringId](jsonItem)
-    itemAfter.get.id should equal (id)
+    itemAfter.get.head.id should equal (id)
+  }
+
+  "A empty seq" should "be supported" in {
+    val emptySeqItem = TestSeq(23L,
+      Seq[TestSimple](),
+      Some(Seq[Long]()))
+    val json = mappers.jsonViewWriter.write(emptySeqItem)
+    logger.info("With empty seq = " + json)
+    val emptySeqAfter = mappers.jsonViewReader.read[TestSeq](json).get.head
+
+    emptySeqAfter.simpleSeq.toList should contain theSameElementsAs emptySeqItem.simpleSeq
+    emptySeqAfter.optionSeq.get shouldBe empty
+
+    logger.info(" ## test b.equals(a) = " + emptySeqItem.equals(emptySeqAfter) +
+      ", b == a = " + (emptySeqItem == emptySeqAfter))
+  }
+
+  "A seq" should "be supported" in {
+    val seqItem = TestSeq(23L,
+      Seq[TestSimple](TestSimple(ObjectKey("st", 3L), "g", 1)),
+      Some(Seq[Long](7L)))
+    val json = mappers.jsonViewWriter.write(seqItem)
+    logger.info("With seq = " + json)
+    val seqAfter = mappers.jsonViewReader.read[TestSeq](json)
+    val itemAfter = seqAfter.get.head
+
+    itemAfter.simpleSeq.toList should contain theSameElementsAs seqItem.simpleSeq
+    itemAfter.optionSeq should not be empty
+    itemAfter.optionSeq.get.toList should contain theSameElementsAs seqItem.optionSeq.get
+  }
+
+  "A ViewItems seq" should "be write as array" in {
+    val seq = data.createNewItem() :: Nil// :: data.createNewItem() :: data.createNewItem() :: Nil
+    val json = mappers.jsonViewWriter.write(seq)
+    val after = mappers.jsonViewReader.read[TestView](json)
+    logger.info("Seq json = " + json + "\n equals = " + seq.head.equals(after.get.head))
+    after.get.size shouldEqual seq.size
+    after.get should contain theSameElementsAs seq
   }
 }

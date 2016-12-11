@@ -75,13 +75,13 @@ class JsonApiFormatMeasurement //extends BaseUnitTest
 
   @Threads(1)
   @Benchmark
-  def fullRead1(state: BenchmarkState): Option[ViewItem] = {
+  def fullRead1(state: BenchmarkState): Option[Seq[ViewItem]] = {
     state.jsonViewReader.read[TestView](state.testDataStr)
   }
 
   @Threads(3)
   @Benchmark
-  def fullRead3(state: BenchmarkState): Option[ViewItem] = {
+  def fullRead3(state: BenchmarkState): Option[Seq[ViewItem]] = {
     state.jsonViewReader.read[TestView](state.testDataStr)
   }
 
