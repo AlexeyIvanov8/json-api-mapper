@@ -17,12 +17,12 @@ class InheritanceViewModelTest extends BaseUnitTest {
     logger.info("Parent = " + jsonParent)
     logger.info("Child = " + jsonChild)
 
-    val parentAfter = mappers.jsonViewReader.read[LowParent](jsonParent)
-    val childAfter = mappers.jsonViewReader.read[WideChild](jsonChild)
+    val parentAfter = mappers.jsonViewReader.read[LowParent](jsonParent).get.head
+    val childAfter = mappers.jsonViewReader.read[WideChild](jsonChild).get.head
 
-    parentAfter.get.key should equal (parent.key)
-    childAfter.get.key.`type` should equal (child.key.`type`)
-    childAfter.get.lastName should equal (child.lastName)
-    childAfter.get.firstName should equal (child.firstName)
+    parentAfter.key should equal (parent.key)
+    childAfter.key.`type` should equal (child.key.`type`)
+    childAfter.lastName should equal (child.lastName)
+    childAfter.firstName should equal (child.firstName)
   }
 }

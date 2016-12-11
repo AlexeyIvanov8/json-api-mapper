@@ -51,7 +51,7 @@ object TestApp extends App {
               Some(CustomObject(Some("customName"), 94, Some(3.4 :: 4.5 :: Nil))))*/
             val data = jsonViewReader.read[TestView](testStr)
             //val data = jsonViewWriter.write(item)
-            count += /*1+data.length*0 // */ data.get.key.id.map(_.as[Long]).getOrElse(0L)
+            count += /*1+data.length*0 // */ data.get.head.key.id.map(_.as[Long]).getOrElse(0L)
           }
           count
         }

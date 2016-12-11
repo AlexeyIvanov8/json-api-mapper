@@ -89,10 +89,10 @@ class ViewModelTest extends BaseUnitTest
       Some(Seq[Long]()))
     val json = mappers.jsonViewWriter.write(emptySeqItem)
     logger.info("With empty seq = " + json)
-    val emptySeqAfter = mappers.jsonViewReader.read[TestSeq](json)
+    val emptySeqAfter = mappers.jsonViewReader.read[TestSeq](json).get.head
 
-    emptySeqAfter.get.head.simpleSeq.toList should contain theSameElementsAs emptySeqItem.simpleSeq
-    emptySeqAfter.get.head.optionSeq.get shouldBe empty
+    emptySeqAfter.simpleSeq.toList should contain theSameElementsAs emptySeqItem.simpleSeq
+    emptySeqAfter.optionSeq.get shouldBe empty
   }
 
   "A seq" should "be supported" in {
@@ -113,7 +113,7 @@ class ViewModelTest extends BaseUnitTest
     val seq = data.createNewItem() :: data.createNewItem() :: data.createNewItem() :: Nil
     val json = mappers.jsonViewWriter.write(seq)
     val after = mappers.jsonViewReader.read[TestView](json)
-    after.get.size shouldEqual after.size
+    after.get.size shouldEqual seq.size
     after.get should contain theSameElementsAs seq
   }
 }
