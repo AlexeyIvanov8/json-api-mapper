@@ -93,6 +93,9 @@ class ViewModelTest extends BaseUnitTest
 
     emptySeqAfter.simpleSeq.toList should contain theSameElementsAs emptySeqItem.simpleSeq
     emptySeqAfter.optionSeq.get shouldBe empty
+
+    logger.info(" ## test b.equals(a) = " + emptySeqItem.equals(emptySeqAfter) +
+      ", b == a = " + (emptySeqItem == emptySeqAfter))
   }
 
   "A seq" should "be supported" in {
@@ -110,9 +113,10 @@ class ViewModelTest extends BaseUnitTest
   }
 
   "A ViewItems seq" should "be write as array" in {
-    val seq = data.createNewItem() :: data.createNewItem() :: data.createNewItem() :: Nil
+    val seq = data.createNewItem() :: Nil// :: data.createNewItem() :: data.createNewItem() :: Nil
     val json = mappers.jsonViewWriter.write(seq)
     val after = mappers.jsonViewReader.read[TestView](json)
+    logger.info("Seq json = " + json + "\n equals = " + seq.head.equals(after.get.head))
     after.get.size shouldEqual seq.size
     after.get should contain theSameElementsAs seq
   }

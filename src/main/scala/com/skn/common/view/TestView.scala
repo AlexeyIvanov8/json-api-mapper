@@ -10,7 +10,7 @@ import com.skn.api.view.model.{ViewItem, ViewLink, ViewValue, ViewValueFactory}
   *
   * Created by Sergey on 11.10.2016.
   */
-class Home(val name: String) extends ViewValue {
+case class Home(val name: String) extends ViewValue {
   override def toString: String = "1"+name
 }
 

@@ -39,6 +39,7 @@ object JsonApiJacksonFormat {
 
         val deserializers = new SimpleDeserializers
         deserializers.addDeserializer(classOf[JsonApiValue], (parser: JsonParser, context: DeserializationContext) => {
+
           val codec = parser.getCodec
           val node = codec.readTree(parser).asInstanceOf[JsonNode]
           node.getNodeType match {
@@ -50,8 +51,11 @@ object JsonApiJacksonFormat {
               case _ => JsonApiNumber(BigDecimal(node.asText()))
             }
             case JsonNodeType.ARRAY =>
-              JsonApiArray((for(elt <- node.elements().asScala) yield
-                codec.treeToValue(elt, classOf[JsonApiValue])).toSeq)
+              val it = node.elements()
+              var seq: List[JsonApiValue] = List[JsonApiValue]()
+              while(it.hasNext)
+                seq = codec.treeToValue(it.next(), classOf[JsonApiValue]) :: seq
+              JsonApiArray(seq.reverse)
             case JsonNodeType.OBJECT => JsonApiObject(
               node.asInstanceOf[ObjectNode].fields()
                 .asScala
