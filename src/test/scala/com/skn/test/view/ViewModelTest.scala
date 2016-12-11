@@ -80,7 +80,7 @@ class ViewModelTest extends BaseUnitTest
     val item = WithStringId(id, 45L)
     val jsonItem = mappers.jsonViewWriter.write(item)
     val itemAfter = mappers.jsonViewReader.read[WithStringId](jsonItem)
-    itemAfter.get.id should equal (id)
+    itemAfter.get.head.id should equal (id)
   }
 
   "A empty seq" should "be supported" in {
@@ -91,8 +91,8 @@ class ViewModelTest extends BaseUnitTest
     logger.info("With empty seq = " + json)
     val emptySeqAfter = mappers.jsonViewReader.read[TestSeq](json)
 
-    emptySeqAfter.get.simpleSeq.toList should contain theSameElementsAs emptySeqItem.simpleSeq
-    emptySeqAfter.get.optionSeq.get shouldBe empty
+    emptySeqAfter.get.head.simpleSeq.toList should contain theSameElementsAs emptySeqItem.simpleSeq
+    emptySeqAfter.get.head.optionSeq.get shouldBe empty
   }
 
   "A seq" should "be supported" in {
@@ -102,9 +102,18 @@ class ViewModelTest extends BaseUnitTest
     val json = mappers.jsonViewWriter.write(seqItem)
     logger.info("With seq = " + json)
     val seqAfter = mappers.jsonViewReader.read[TestSeq](json)
+    val itemAfter = seqAfter.get.head
 
-    seqAfter.get.simpleSeq.toList should contain theSameElementsAs seqItem.simpleSeq
-    seqAfter.get.optionSeq should not be empty
-    seqAfter.get.optionSeq.get.toList should contain theSameElementsAs seqItem.optionSeq.get
+    itemAfter.simpleSeq.toList should contain theSameElementsAs seqItem.simpleSeq
+    itemAfter.optionSeq should not be empty
+    itemAfter.optionSeq.get.toList should contain theSameElementsAs seqItem.optionSeq.get
+  }
+
+  "A ViewItems seq" should "be write as array" in {
+    val seq = data.createNewItem() :: data.createNewItem() :: data.createNewItem() :: Nil
+    val json = mappers.jsonViewWriter.write(seq)
+    val after = mappers.jsonViewReader.read[TestView](json)
+    after.get.size shouldEqual after.size
+    after.get should contain theSameElementsAs seq
   }
 }
