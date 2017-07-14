@@ -2,7 +2,7 @@
 import pl.project13.scala.sbt.JmhPlugin
 
 //val scalaVersionString = "2.12.0-SNAPSHOT"
-val scalaVersionString = "2.12.0-SNAPSHOT"
+val scalaVersionString = "2.12.3-bin-SNAPSHOT"
 //val scalaVersionString = "2.11.8"
 
 // for super safe compiler plugin

@@ -1,6 +1,7 @@
 package com.skn.api.view.model.mapper
 
 import java.time.temporal.Temporal
+import java.util.UUID
 
 import com.skn.api.view.exception.ParsingException
 import com.skn.api.view.jsonapi.JsonApiModel.{Data, ObjectKey, Relationship}
@@ -9,7 +10,7 @@ import com.skn.api.view.model._
 import com.skn.api.view.model.data._
 import org.slf4j.LoggerFactory
 
-import scala.reflect.runtime.{ universe => ru }
+import scala.reflect.runtime.{universe => ru}
 /**
   * Default implementation
   * @param linkDefiner - for creating links to other view items
@@ -102,6 +103,7 @@ class DefaultViewWriter(val linkDefiner: LinkDefiner) extends ViewWriter {
   private def toJsonValue(field: Any): JsonApiValue = {
     field match {
       case value: String => JsonApiString(value)
+      case value: UUID => JsonApiString(value.toString)
       case value: BigDecimal => JsonApiNumber(value)
       case value: Boolean => JsonApiBoolean(value)
       case value: Int => JsonApiNumber(value)

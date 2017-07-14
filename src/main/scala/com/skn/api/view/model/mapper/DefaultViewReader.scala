@@ -1,6 +1,7 @@
 package com.skn.api.view.model.mapper
 
 import java.time.{LocalDate, LocalDateTime}
+import java.util.UUID
 
 import com.skn.api.view.exception.ParsingException
 import com.skn.api.view.jsonapi.JsonApiModel.{Data, ObjectKey}
@@ -139,6 +140,10 @@ class DefaultViewReader(val features: Map[ReadFeatures, Boolean] = Map[ReadFeatu
     classOf[String] -> new FieldTypeMapping[String]() {
       override def fromJsValue(jsValue: JsonApiValue): String = jsValue.as[String]
       override def toJsValue(t: String): JsonApiValue = JsonApiString(t)},
+    classOf[UUID] -> new FieldTypeMapping[UUID]() {
+      override def fromJsValue(jsValue: JsonApiValue): UUID = UUID.fromString(jsValue.as[String])
+      override def toJsValue(t: UUID): JsonApiValue = JsonApiString(t.toString)
+    },
     classOf[BigDecimal] -> new FieldTypeMapping[BigDecimal]() {
       override def fromJsValue(jsValue: JsonApiValue): BigDecimal = jsValue.as[BigDecimal]
       override def toJsValue(t: BigDecimal): JsonApiValue = JsonApiNumber(t)
