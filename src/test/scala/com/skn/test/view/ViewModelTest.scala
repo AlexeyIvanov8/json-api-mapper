@@ -1,6 +1,7 @@
 package com.skn.test.view
 
 import java.time.LocalDateTime
+import java.util.UUID
 import java.util.concurrent._
 
 import com.skn.api.view.exception.ParsingException
@@ -119,5 +120,14 @@ class ViewModelTest extends BaseUnitTest
     logger.info("Seq json = " + json + "\n equals = " + seq.head.equals(after.get.head))
     after.get.size shouldEqual seq.size
     after.get should contain theSameElementsAs seq
+  }
+
+  "A UUID" should "be write normally" in {
+    val entity = EntityWithUuid(UUID.randomUUID(), UUID.randomUUID());
+    val json = mappers.jsonViewWriter.write(entity)
+    val after: EntityWithUuid = mappers.jsonViewReader.read[EntityWithUuid](json).get.head
+    logger.info("Entity with UUID = " + json)
+    after.id shouldEqual entity.id
+    after.another shouldEqual entity.another
   }
 }

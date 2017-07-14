@@ -1,6 +1,7 @@
 package com.skn.common.view
 
 import java.time.LocalDateTime
+import java.util.UUID
 
 import com.skn.api.view.jsonapi.JsonApiModel.ObjectKey
 import com.skn.api.view.jsonapi.JsonApiValueModel.JsonApiNumber
@@ -17,6 +18,10 @@ case class Home(val name: String) extends ViewValue {
 object Home extends ViewValueFactory[Home] {
   override def fromString(str: String): Home = new Home(str.substring(1))
 }
+
+case class EntityWithUuid(id: UUID, another: UUID) extends ViewItem {
+          val key = ObjectKey("entity_with_UUID", id.toString)
+        }
 
 case class TestSeq(id: Long,
                    simpleSeq: Seq[TestSimple],
